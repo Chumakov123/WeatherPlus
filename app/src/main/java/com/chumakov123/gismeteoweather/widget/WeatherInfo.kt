@@ -1,7 +1,7 @@
 package com.chumakov123.gismeteoweather.widget
 
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,10 +11,14 @@ sealed interface WeatherInfo {
 
     @Serializable
     data class Available(
+        //val mode: ForecastMode, //TODO для этого отдельный класс
         val placeName: String,
-        val currentData: WeatherData,
-        val hourlyForecast: List<WeatherData>,
-        val dailyForecast: List<WeatherData>
+        val placeCode: String,
+        val now: WeatherData,
+        val hourly: List<WeatherData>,
+        val daily: List<WeatherData>,
+        val updateTime: Long,
+        val localTime: LocalDateTime,
     ) : WeatherInfo
 
     @Serializable
@@ -23,11 +27,25 @@ sealed interface WeatherInfo {
 
 @Serializable
 data class WeatherData(
+    val description: String,
     @DrawableRes val icon: Int,
-    @StringRes val status: Int,
-    val temp: Int,
-    val maxTemp: Int,
-    val minTemp: Int,
-    val day: String,
-    val hour: String,
+    val temperature: Int,
+    val temperatureMin: Int?,
+    val windSpeed: Int,
+    val windDirection: String,
+    val windGust: Int,
+    val precipitation: Double,
+)
+
+
+data class WindData(
+    val speed: Int,
+    val direction: String,
+    val gust: Int
+)
+
+data class WeatherIconInfo(
+    val tooltip: String,
+    val topLayer: String?,
+    val bottomLayer: String?
 )

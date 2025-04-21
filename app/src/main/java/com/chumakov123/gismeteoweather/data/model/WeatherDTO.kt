@@ -3,20 +3,10 @@ package com.chumakov123.gismeteoweather.data.model
 import androidx.annotation.DrawableRes
 import com.chumakov123.gismeteoweather.R
 import com.chumakov123.gismeteoweather.utils.WeatherDrawables
-import com.chumakov123.gismeteoweather.widget.MyWeatherData
+import com.chumakov123.gismeteoweather.utils.WindDirections
+import com.chumakov123.gismeteoweather.utils.WindDirections.windDirections
+import com.chumakov123.gismeteoweather.widget.WeatherData
 import kotlinx.serialization.Serializable
-
-val windDirections = mapOf(
-    0 to "-",
-    1 to "С",
-    2 to "СВ",
-    3 to "В",
-    4 to "ЮВ",
-    5 to "Ю",
-    6 to "ЮЗ",
-    7 to "З",
-    8 to "СЗ"
-)
 
 @Serializable
 data class WeatherDTO(
@@ -37,13 +27,13 @@ data class WeatherDTO(
     val windSpeed: Int
 )
 
-fun WeatherDTO.toWeatherData() = MyWeatherData(
+fun WeatherDTO.toWeatherData() = WeatherData(
     description = description,
     icon = WeatherDrawables.drawableMap[iconWeather] ?: R.drawable.c3,
     temperature = temperatureAir,
     temperatureMin = null,
     windSpeed = windSpeed,
-    windDirection = windDirections[windDirection]!!,
+    windDirection = windDirections[WindDirections.getWindDirectionIndex(windDirection, windSpeed)] ?: "-",
     precipitation = precipitation,
     windGust = windGust,
 )

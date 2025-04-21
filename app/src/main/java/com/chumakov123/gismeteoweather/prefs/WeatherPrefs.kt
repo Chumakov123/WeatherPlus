@@ -1,8 +1,6 @@
 package com.chumakov123.gismeteoweather.prefs
 
 import android.content.Context
-import com.chumakov123.gismeteoweather.data.model.CitySettings
-import com.chumakov123.gismeteoweather.data.model.ForecastMode
 import com.chumakov123.gismeteoweather.data.model.WeatherDTO
 import com.chumakov123.gismeteoweather.utils.JsonProvider
 import java.text.SimpleDateFormat
@@ -59,16 +57,6 @@ object WeatherPrefs {
         } else {
             null
         }
-    }
-    //endregion
-
-    //region CitySettings
-    fun loadCitySettings(context: Context): CitySettings {
-        val prefs = getPrefs(context)
-        val city = prefs.getString(CITY_KEY, "rostov-na-donu-5110") ?: "rostov-na-donu-5110"
-        val modeOrdinal = prefs.getInt(FORECAST_MODE_KEY, ForecastMode.HOURLY.ordinal)
-        val mode = enumValues<ForecastMode>()[modeOrdinal]
-        return CitySettings(city, mode)
     }
     //endregion
 

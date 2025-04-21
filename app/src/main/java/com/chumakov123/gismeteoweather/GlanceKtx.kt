@@ -60,9 +60,8 @@ fun AppWidgetColumn(
 @Composable
 fun appWidgetBackgroundModifier() = GlanceModifier
     .fillMaxSize()
-    .padding(16.dp)
     .appWidgetBackground()
-    .background(ColorProvider(Color.Black))
+    .background(ColorProvider(Color(0x80000000)))
     .appWidgetBackgroundCornerRadius()
 
 fun GlanceModifier.appWidgetBackgroundCornerRadius(): GlanceModifier {
