@@ -33,7 +33,8 @@ fun WeatherDTO.toWeatherData() = WeatherData(
     temperature = temperatureAir,
     temperatureMin = null,
     windSpeed = windSpeed,
-    windDirection = windDirections[WindDirections.getWindDirectionIndex(windDirection, windSpeed)] ?: "-",
+    windDirection = windDirections[WindDirections.getWindDirectionIndex(windDirection, windSpeed)] ?: "—",
     precipitation = precipitation,
     windGust = windGust,
+    pressure = pressure
 )

@@ -1,6 +1,9 @@
 package com.chumakov123.gismeteoweather.utils
 
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.plus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -24,5 +27,27 @@ object Utils {
         val date = Date(timeMillis)
         val dateFormat = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
         return dateFormat.format(date)
+    }
+
+    private val russianWeekdays = mapOf(
+        DayOfWeek.MONDAY    to "пн",
+        DayOfWeek.TUESDAY   to "вт",
+        DayOfWeek.WEDNESDAY to "ср",
+        DayOfWeek.THURSDAY  to "чт",
+        DayOfWeek.FRIDAY    to "пт",
+        DayOfWeek.SATURDAY  to "сб",
+        DayOfWeek.SUNDAY    to "вс"
+    )
+
+    fun LocalDateTime.toWeekdayDayString(): String {
+        val wd = russianWeekdays[this.date.dayOfWeek]
+            ?: error("Неизвестный день недели")
+        val dayOfMonth = this.date.dayOfMonth
+        return "$wd, $dayOfMonth"
+    }
+
+    fun LocalDateTime.plusCalendarDays(days: Int): LocalDateTime {
+        val newDate = this.date.plus(DatePeriod(days = days))
+        return LocalDateTime(newDate, this.time)
     }
 }

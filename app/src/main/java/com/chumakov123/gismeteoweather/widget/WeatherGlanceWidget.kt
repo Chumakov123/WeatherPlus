@@ -1,7 +1,7 @@
 package com.chumakov123.gismeteoweather.widget
 
 import android.content.Context
-import androidx.compose.material3.MaterialTheme
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
@@ -22,13 +22,15 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.appwidget.updateAll
+import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -45,9 +47,11 @@ import androidx.glance.unit.ColorProvider
 import com.chumakov123.gismeteoweather.AppWidgetBox
 import com.chumakov123.gismeteoweather.AppWidgetColumn
 import com.chumakov123.gismeteoweather.R
+import com.chumakov123.gismeteoweather.utils.TemperatureGradation.interpolateTemperatureColor
 import com.chumakov123.gismeteoweather.utils.Utils
-import com.chumakov123.gismeteoweather.worker.WeatherWorker
-import kotlinx.datetime.LocalDateTime
+import com.chumakov123.gismeteoweather.utils.Utils.plusCalendarDays
+import com.chumakov123.gismeteoweather.utils.Utils.toWeekdayDayString
+import com.chumakov123.gismeteoweather.utils.WindSpeedGradation.interpolateWindColor
 
 class WeatherGlanceWidget : GlanceAppWidget() {
 
@@ -116,7 +120,7 @@ class WeatherGlanceWidget : GlanceAppWidget() {
 @Composable
 fun WeatherThin(weatherInfo: WeatherInfo.Available) {
     AppWidgetColumn(GlanceModifier.clickable(actionRunCallback<UpdateWeatherAction>())) { //TODO вместо обновления виджета, открывать приложение по нажатию
-        CurrentTemperature(
+        CurrentWeather(
             weatherInfo,
             modifier = GlanceModifier.fillMaxSize(),
             Alignment.CenterHorizontally
@@ -131,7 +135,7 @@ fun WeatherSmall(weatherInfo: WeatherInfo.Available) {
             modifier = GlanceModifier.wrapContentHeight().fillMaxWidth(),
             horizontalAlignment = Alignment.Start
         ) {
-            CurrentTemperature(weatherInfo, modifier = GlanceModifier.fillMaxSize().defaultWeight())
+            CurrentWeather(weatherInfo, modifier = GlanceModifier.fillMaxSize().defaultWeight())
             WeatherIcon(weatherInfo, modifier = GlanceModifier.fillMaxWidth().defaultWeight())
             PlaceWeather(weatherInfo, modifier = GlanceModifier.fillMaxWidth().defaultWeight())
         }
@@ -142,53 +146,62 @@ fun WeatherSmall(weatherInfo: WeatherInfo.Available) {
 fun WeatherMedium(weatherInfo: WeatherInfo.Available, forecastMode: ForecastMode) {
     AppWidgetColumn(GlanceModifier.clickable(actionRunCallback<UpdateWeatherAction>())) {
         Row(
-            modifier = GlanceModifier.fillMaxWidth(),
+            modifier = GlanceModifier
+                .fillMaxWidth()
+                .background(ColorProvider(Color.Black))
+                .padding(start = 8.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalAlignment = Alignment.End
         ) {
 
-            // Дата последнего обновления
             Text(
-                text = "${Utils.formatDateTime(weatherInfo.updateTime)}, Ростов-на-дону",
+                text = "${Utils.formatDateTime(weatherInfo.updateTime)}, ${weatherInfo.placeName}",
                 style = TextStyle(
-                    color = ColorProvider(Color.LightGray),
-                    fontSize = 10.sp
-                )
+                    color = ColorProvider(Color.White),
+                    fontSize = 12.sp
+                ),
+                modifier = GlanceModifier.defaultWeight()
             )
-            Box(
-                modifier = GlanceModifier
-                    .height(10.dp)
-                    .width(24.dp)
-                    .clickable(actionRunCallback<UpdateWeatherAction>()),
-                contentAlignment = Alignment.Center
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    provider = ImageProvider(R.drawable.ic_refresh),
-                    contentDescription = "Обновить",
-                    modifier = GlanceModifier.size(10.dp) // сама иконка — маленькая
-                )
+                Box(
+                    modifier = GlanceModifier
+                        .height(12.dp)
+                        .width(24.dp)
+                        .clickable(actionRunCallback<SwitchForecastModeAction>()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_calendar),
+                        contentDescription = "Переключить режим",
+                        modifier = GlanceModifier.size(12.dp)
+                    )
+                }
+                Box(
+                    modifier = GlanceModifier
+                        .height(12.dp)
+                        .width(24.dp)
+                        .clickable(actionRunCallback<UpdateWeatherAction>()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_refresh),
+                        contentDescription = "Обновить",
+                        modifier = GlanceModifier.size(12.dp)
+                    )
+                }
             }
         }
+        CurrentWeather(weatherInfo, GlanceModifier.fillMaxWidth())
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            CurrentTemperature(
-                weatherInfo,
-            )
-            WeatherIcon(weatherInfo)
-            //PlaceWeather(weatherInfo)
-        }
-        Row(
-            modifier = GlanceModifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (forecastMode == ForecastMode.ByHours) {
                 HourlyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize())
             } else {
-                //TODO Прогноз на неделю
+                DailyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize())
             }
         }
     }
@@ -208,7 +221,7 @@ fun WeatherLarge(weatherInfo: WeatherInfo.Available, forecastMode: ForecastMode)
             modifier = GlanceModifier.wrapContentHeight().fillMaxWidth(),
             horizontalAlignment = Alignment.Start
         ) {
-            CurrentTemperature(
+            CurrentWeather(
                 weatherInfo,
                 modifier = GlanceModifier.wrapContentHeight(),
                 Alignment.Start
@@ -222,47 +235,133 @@ fun WeatherLarge(weatherInfo: WeatherInfo.Available, forecastMode: ForecastMode)
 
 @Composable
 fun WeatherIcon(weatherInfo: WeatherInfo.Available, modifier: GlanceModifier = GlanceModifier) {
-    // TODO missing tint
     Box(modifier = modifier, contentAlignment = Alignment.TopStart) {
         Image(
             provider = ImageProvider(weatherInfo.now.icon),
             contentDescription = weatherInfo.now.description,
-            modifier = GlanceModifier.size(48.dp),
+            modifier = GlanceModifier.size(36.dp),
         )
     }
 }
 
 @Composable
-fun CurrentTemperature(
+fun CurrentWeather(
     weatherInfo: WeatherInfo.Available,
     modifier: GlanceModifier = GlanceModifier,
     horizontal: Alignment.Horizontal = Alignment.Start
 ) {
-    Column(
+    Row(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalAlignment = horizontal
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        val defaultWeight = GlanceModifier.wrapContentSize()
-        Row(modifier = defaultWeight) {
+        Column(
+            modifier = modifier.defaultWeight(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            val defaultWeight = GlanceModifier.wrapContentSize()
+            Row(
+                modifier = modifier.defaultWeight(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalAlignment = Alignment.CenterHorizontally,) {
+                Text(
+                    text = "${if (weatherInfo.now.temperature > 0) "+" else ""}${weatherInfo.now.temperature}°",
+                    style = TextStyle(
+                        color = ColorProvider(Color.White),
+                        fontSize = 24.sp
+                    )
+                )
+                if (weatherInfo.now.temperatureMin != null) {
+                    Row(modifier = modifier.defaultWeight()) {
+                        Text(
+                            text = "${weatherInfo.now.temperatureMin}°",
+                            style = TextStyle(
+                                color = ColorProvider(Color.LightGray),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+                WeatherIcon(weatherInfo)
+            }
             Text(
-                text = "${if (weatherInfo.now.temperature > 0) "+" else ""}${weatherInfo.now.temperature}°",
+                text = weatherInfo.now.description,
                 style = TextStyle(
                     color = ColorProvider(Color.White),
-                    fontSize = 24.sp
+                    fontSize = 11.sp,
+                    textAlign = TextAlign.Center
                 )
             )
-            if (weatherInfo.now.temperatureMin != null) {
-                Row(modifier = defaultWeight) {
-                    Text(
-                        text = "${weatherInfo.now.temperatureMin}°",
-                        style = TextStyle(
-                            color = ColorProvider(Color.White),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+        }
+        Spacer(modifier = GlanceModifier.width(4.dp))
+        Spacer(
+            modifier = GlanceModifier
+                .height(48.dp)
+                .width(1.dp)
+                .background(ColorProvider(Color.Gray))
+        )
+        Spacer(modifier = GlanceModifier.width(4.dp))
+        Column(
+            modifier = modifier.defaultWeight(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row{
+                Text(
+                    text = "Осадки: ",
+                    style = TextStyle(
+                        color = ColorProvider(Color.LightGray),
+                        fontSize = 11.sp
                     )
-                }
+                )
+                Text(
+                    text = if (weatherInfo.now.precipitation != 0.0)
+                        "${weatherInfo.now.precipitation} мм"
+                    else
+                        "Нет",
+                    style = TextStyle(
+                        color = ColorProvider(Color.White),
+                        fontSize = 11.sp
+                    )
+                )
+            }
+
+            Row(modifier = modifier.defaultWeight(),){
+                Text(
+                    text = "Ветер: ",
+                    style = TextStyle(
+                        color = ColorProvider(Color.LightGray),
+                        fontSize = 11.sp
+                    )
+                )
+                Text(
+                    text = if (weatherInfo.now.windDirection != "—")
+                        "${weatherInfo.now.windSpeed}—${weatherInfo.now.windGust} м/c, ${weatherInfo.now.windDirection}"
+                    else
+                        "Нет",
+                    style = TextStyle(
+                        color = ColorProvider(Color.White),
+                        fontSize = 11.sp
+                    )
+                )
+            }
+
+            Row{
+                Text(
+                    text = "Давление: ",
+                    style = TextStyle(
+                        color = ColorProvider(Color.LightGray),
+                        fontSize = 11.sp
+                    )
+                )
+                Text(
+                    text = "${weatherInfo.now.pressure} мм рт. ст.",
+                    style = TextStyle(
+                        color = ColorProvider(Color.White),
+                        fontSize = 11.sp
+                    )
+                )
             }
         }
     }
@@ -319,13 +418,36 @@ fun HourlyForecast(
     ) {
         displayList.forEachIndexed { index, item ->
             val hourLabel = Utils.getIntervalStartTime(startIndex + index)
-            HourForecast(weatherData = item, date = hourLabel)
+            ForecastColumn(weatherData = item, date = hourLabel, modifier = GlanceModifier.defaultWeight())
         }
     }
 }
 
 @Composable
-fun HourForecast(
+fun DailyForecast(
+    weatherInfo: WeatherInfo.Available,
+    modifier: GlanceModifier = GlanceModifier
+) {
+    val visibleCount = 6
+
+    val displayList = weatherInfo.daily
+        .take(visibleCount)
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        displayList.forEachIndexed { index, item ->
+            val dayLabel = weatherInfo.localTime.plusCalendarDays(index).toWeekdayDayString()
+            ForecastColumn(weatherData = item, date = dayLabel, modifier = GlanceModifier.defaultWeight())
+        }
+    }
+}
+
+
+@Composable
+fun ForecastColumn(
     weatherData: WeatherData,
     date: String,
     modifier: GlanceModifier = GlanceModifier
@@ -347,68 +469,57 @@ fun HourForecast(
             contentDescription = weatherData.description,
             modifier = GlanceModifier.size(32.dp),
         )
+        val temperatureColor = interpolateTemperatureColor(weatherData.temperature)
+        if (weatherData.temperatureMin == null) {
+            Text(
+                text = "${if (weatherData.temperature > 0) "+" else ""}${weatherData.temperature}°",
+                style = TextStyle(
+                    color = ColorProvider(temperatureColor),
+                    fontSize = 14.sp
+                ),
+            )
+        } else {
+            val temperatureColorMin = interpolateTemperatureColor(weatherData.temperatureMin)
+            Text(
+                text = "${if (weatherData.temperature > 0) "+" else ""}${weatherData.temperature}°",
+                style = TextStyle(
+                    color = ColorProvider(temperatureColor),
+                    fontSize = 12.sp
+                ),
+            )
+            Text(
+                text = "${if (weatherData.temperatureMin > 0) "+" else ""}${weatherData.temperatureMin}°",
+                style = TextStyle(
+                    color = ColorProvider(temperatureColorMin),
+                    fontSize = 10.sp
+                ),
+            )
+        }
+        val windColor = interpolateWindColor(weatherData.windGust)
         Text(
-            text = "${weatherData.temperature}º",
+            text = if (weatherData.windDirection != "—")
+                "${weatherData.windSpeed}—${weatherData.windGust}, ${weatherData.windDirection}"
+            else
+                "—",
             style = TextStyle(
-                color = ColorProvider(Color.White),
-                fontSize = 14.sp
+                color = ColorProvider(windColor),
+                fontSize = 10.sp
+            ),
+        )
+        Text(
+            text = if (weatherData.precipitation != 0.0)
+                "${weatherData.precipitation} мм"
+            else
+                "—",
+            style = TextStyle(
+                color = if (weatherData.precipitation != 0.0)
+                    ColorProvider(Color(66, 165, 245, 255))
+                else ColorProvider(Color.LightGray),
+                fontSize = 10.sp
             ),
         )
     }
 }
-
-//@Composable
-//fun DailyForecast(
-//    weatherInfo: WeatherInfo.Available,
-//    modifier: GlanceModifier = GlanceModifier
-//) {
-//    LazyColumn(
-//        modifier = GlanceModifier
-//            .background(GlanceTheme.colors.surfaceVariant)
-//            .appWidgetInnerCornerRadius()
-//            .then(modifier)
-//    ) {
-//        items(weatherInfo.dailyForecast) { dayForecast ->
-//            Row(
-//                modifier = GlanceModifier.fillMaxWidth().padding(8.dp),
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Text(
-//                    text = dayForecast.toDayString(),
-//                    style = TextStyle(
-//                        color = ColorProvider(Color.Black),
-//                        fontSize = 14.sp
-//                    )
-//                )
-//                Row(
-//                    modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
-//                    horizontalAlignment = Alignment.End,
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    val textStyle = TextStyle(
-//                        color = ColorProvider(Color.Black),
-//                        fontSize = 14.sp
-//                    )
-//                    Image(
-//                        provider = ImageProvider(dayForecast.icon),
-//                        contentDescription = dayForecast.status.toString(),
-//                        modifier = GlanceModifier.size(24.dp).padding(4.dp),
-//                    )
-//                    Text(
-//                        text = "${dayForecast.minTemp}º",
-//                        style = textStyle,
-//                        modifier = GlanceModifier.padding(4.dp)
-//                    )
-//                    Text(
-//                        text = "${dayForecast.maxTemp}º",
-//                        style = textStyle,
-//                        modifier = GlanceModifier.padding(4.dp)
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
 
 /**
  * Force update the weather info after user click
@@ -419,8 +530,8 @@ class UpdateWeatherAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        // Force the worker to refresh
-        WeatherWorker.enqueue(context = context, force = true)
+        context.sendBroadcast(Intent(context, WeatherUpdateReceiver::class.java))
+        WeatherAlarmScheduler.scheduleNext(context)
     }
 }
 
@@ -430,12 +541,18 @@ class SwitchForecastModeAction: ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        // Force the worker to refresh
-        WeatherWorker.enqueue(context = context, force = true, switchMode = true)
+        updateAppWidgetState(
+            context = context,
+            definition = WeatherStateDefinition,
+            glanceId = glanceId
+        ) { oldState ->
+            oldState.copy(forecastMode = if (oldState.forecastMode == ForecastMode.ByHours)
+                ForecastMode.ByDays
+            else
+                ForecastMode.ByHours
+            )
+        }
+
+        WeatherGlanceWidget().updateAll(context)
     }
 }
-
-//@Composable
-//private fun WeatherData.toDayString() = day.lowercase(Locale.getDefault()).replaceFirstChar {
-//    if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-//}

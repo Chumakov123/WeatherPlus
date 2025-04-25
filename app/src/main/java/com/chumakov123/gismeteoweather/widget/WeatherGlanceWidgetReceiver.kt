@@ -1,8 +1,8 @@
 package com.chumakov123.gismeteoweather.widget
 
 import android.content.Context
+import android.content.Intent
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import com.chumakov123.gismeteoweather.worker.WeatherWorker
 
 /**
  * Handle system events for AppWidgets with the provided GlanceAppWidget instance.
@@ -21,7 +21,8 @@ class WeatherGlanceWidgetReceiver : GlanceAppWidgetReceiver() {
      */
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
-        WeatherWorker.enqueue(context)
+        context.sendBroadcast(Intent(context, WeatherUpdateReceiver::class.java))
+        WeatherAlarmScheduler.scheduleNext(context)
     }
 
     /**
@@ -30,6 +31,6 @@ class WeatherGlanceWidgetReceiver : GlanceAppWidgetReceiver() {
      */
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
-        WeatherWorker.cancel(context)
+        WeatherAlarmScheduler.cancel(context)
     }
 }

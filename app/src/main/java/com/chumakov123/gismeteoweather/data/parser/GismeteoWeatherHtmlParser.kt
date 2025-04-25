@@ -30,6 +30,7 @@ object GismeteoWeatherHtmlParser {
         val windDataList = parseWindData(html)
         val precipitations = parsePrecipitationData(html)
         val icons = parseWeatherIcons(html)
+        val pressures = parsePressureData(html)
 
         val weatherDataList = mutableListOf<WeatherData>()
 
@@ -40,6 +41,7 @@ object GismeteoWeatherHtmlParser {
             val tMin = if (!hasMinT) null else temperatures[i*2+1]
             val windData = windDataList.getOrElse(i) { WindData(0, "Неизвестно", 0) }
             val precipitation = precipitations.getOrElse(i) { 0.0 }
+            val pressure = pressures.getOrElse(i) { 0 }
             val icon = icons.getOrElse(i) { WeatherIconInfo("Неизвестно", null, null) }
 
             var iconString =
@@ -66,7 +68,8 @@ object GismeteoWeatherHtmlParser {
                 windSpeed = windData.speed,
                 windDirection = windData.direction,
                 windGust = windData.gust,
-                precipitation = precipitation
+                precipitation = precipitation,
+                pressure = pressure
             )
 
             weatherDataList.add(weatherData)
@@ -181,6 +184,28 @@ object GismeteoWeatherHtmlParser {
 
         return temperatures
     }
+
+    private fun parsePressureData(html: String): List<Int> {
+        val document = Jsoup.parse(html)
+        val pressures = mutableListOf<Int>()
+
+        val pressureSection = document.select(".widget-row-chart.widget-row-chart-pressure")
+
+        val pressureElements = pressureSection.select("pressure-value")
+
+        for (element in pressureElements) {
+            val pressureValue = element.attr("value").toIntOrNull() ?: continue
+            val fromUnit = element.attr("from-unit")
+            if (fromUnit == "mmhg") {
+                pressures.add(pressureValue)
+            } else {
+                pressures.add(pressureValue) // временно оставляем как есть
+            }
+        }
+
+        return pressures
+    }
+
     private fun parsePrecipitationData(html: String): List<Double> {
         val document = Jsoup.parse(html) // Парсим HTML
         val precipitations = mutableListOf<Double>()

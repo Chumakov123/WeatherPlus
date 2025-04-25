@@ -4,7 +4,7 @@ import kotlin.math.abs
 
 object WindDirections {
     val windDirections = mapOf(
-        0 to "-",
+        0 to "—",
         1 to "С",
         2 to "СВ",
         3 to "В",

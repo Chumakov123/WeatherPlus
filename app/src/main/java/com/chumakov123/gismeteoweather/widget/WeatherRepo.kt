@@ -73,6 +73,7 @@ object WeatherRepo {
             windDirection = WindDirections.windDirections.values.random(),
             windGust = Random.nextInt(0, 15),
             precipitation = Random.nextDouble(0.0, 10.0),
+            pressure = Random.nextInt(700, 800)
         )
     }
 }

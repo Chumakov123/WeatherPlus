@@ -35,6 +35,7 @@ data class WeatherData(
     val windDirection: String,
     val windGust: Int,
     val precipitation: Double,
+    val pressure: Int
 )
 
 
