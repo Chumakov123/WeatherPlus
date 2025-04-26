@@ -27,7 +27,7 @@
         </activity>
 
         <receiver
-            android:name=".widget.WeatherGlanceWidgetReceiver"
+            android:name=".presentation.receiver.WeatherGlanceWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -40,16 +40,25 @@
         </receiver>
 
         <receiver
-            android:name=".widget.WeatherUpdateReceiver"
+            android:name=".presentation.receiver.WeatherUpdateReceiver"
             android:exported="false" />
 
-        <receiver android:name=".widget.BootReceiver"
+        <receiver android:name=".presentation.receiver.BootReceiver"
             android:exported="true"
             android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <activity
+            android:name=".WeatherWidgetConfigureActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.Dialog">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

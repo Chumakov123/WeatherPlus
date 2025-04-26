@@ -1,10 +1,8 @@
-package com.chumakov123.gismeteoweather
+package com.chumakov123.gismeteoweather.presentation.ui
 
 import android.content.res.Resources
-import android.content.res.Resources.Theme
 import android.os.Build
 import androidx.annotation.StringRes
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -18,7 +16,6 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.ColumnScope
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.padding
 import androidx.glance.unit.ColorProvider
 
 /**

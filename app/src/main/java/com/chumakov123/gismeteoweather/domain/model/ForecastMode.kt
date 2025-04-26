@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.widget
+package com.chumakov123.gismeteoweather.domain.model
 
 import kotlinx.serialization.Serializable
 

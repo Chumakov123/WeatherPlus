@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.widget
+package com.chumakov123.gismeteoweather.presentation.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context

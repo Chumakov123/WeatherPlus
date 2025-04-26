@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.widget
+package com.chumakov123.gismeteoweather.presentation.ui
 
 import android.content.Context
 import android.content.Intent
@@ -44,14 +44,19 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import com.chumakov123.gismeteoweather.AppWidgetBox
-import com.chumakov123.gismeteoweather.AppWidgetColumn
 import com.chumakov123.gismeteoweather.R
-import com.chumakov123.gismeteoweather.utils.TemperatureGradation.interpolateTemperatureColor
-import com.chumakov123.gismeteoweather.utils.Utils
-import com.chumakov123.gismeteoweather.utils.Utils.plusCalendarDays
-import com.chumakov123.gismeteoweather.utils.Utils.toWeekdayDayString
-import com.chumakov123.gismeteoweather.utils.WindSpeedGradation.interpolateWindColor
+import com.chumakov123.gismeteoweather.domain.util.TemperatureGradation.interpolateTemperatureColor
+import com.chumakov123.gismeteoweather.domain.util.Utils
+import com.chumakov123.gismeteoweather.domain.util.Utils.plusCalendarDays
+import com.chumakov123.gismeteoweather.domain.util.Utils.toWeekdayDayString
+import com.chumakov123.gismeteoweather.domain.util.WindSpeedGradation.interpolateWindColor
+import com.chumakov123.gismeteoweather.domain.model.ForecastMode
+import com.chumakov123.gismeteoweather.presentation.receiver.WeatherAlarmScheduler
+import com.chumakov123.gismeteoweather.domain.model.WeatherData
+import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import com.chumakov123.gismeteoweather.domain.model.WeatherStateDefinition
+import com.chumakov123.gismeteoweather.domain.model.WidgetState
+import com.chumakov123.gismeteoweather.presentation.receiver.WeatherUpdateReceiver
 
 class WeatherGlanceWidget : GlanceAppWidget() {
 

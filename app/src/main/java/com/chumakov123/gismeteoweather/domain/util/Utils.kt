@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.utils
+package com.chumakov123.gismeteoweather.domain.util
 
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek

@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.data.fetcher
+package com.chumakov123.gismeteoweather.data.remote
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

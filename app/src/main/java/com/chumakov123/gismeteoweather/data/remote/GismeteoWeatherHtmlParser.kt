@@ -1,13 +1,13 @@
-package com.chumakov123.gismeteoweather.data.parser
+package com.chumakov123.gismeteoweather.data.remote
 
 import com.chumakov123.gismeteoweather.R
-import com.chumakov123.gismeteoweather.data.model.DateAndCityDTO
-import com.chumakov123.gismeteoweather.data.model.WeatherRawDTO
-import com.chumakov123.gismeteoweather.utils.Utils.fahrenheitToCelsius
-import com.chumakov123.gismeteoweather.utils.WeatherDrawables
-import com.chumakov123.gismeteoweather.widget.WeatherData
-import com.chumakov123.gismeteoweather.widget.WeatherIconInfo
-import com.chumakov123.gismeteoweather.widget.WindData
+import com.chumakov123.gismeteoweather.data.dto.DateAndCityDTO
+import com.chumakov123.gismeteoweather.data.dto.WeatherRawDTO
+import com.chumakov123.gismeteoweather.domain.util.Utils.fahrenheitToCelsius
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
+import com.chumakov123.gismeteoweather.domain.model.WeatherData
+import com.chumakov123.gismeteoweather.domain.model.WeatherIconInfo
+import com.chumakov123.gismeteoweather.domain.model.WindData
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -21,7 +21,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Duration.Companion.minutes
 import java.time.format.DateTimeFormatter
 
 object GismeteoWeatherHtmlParser {

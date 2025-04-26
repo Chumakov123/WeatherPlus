@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.widget
+package com.chumakov123.gismeteoweather.domain.model
 
 import androidx.annotation.DrawableRes
 import kotlinx.datetime.LocalDateTime
@@ -11,7 +11,6 @@ sealed interface WeatherInfo {
 
     @Serializable
     data class Available(
-        //val mode: ForecastMode, //TODO для этого отдельный класс
         val placeName: String,
         val placeCode: String,
         val now: WeatherData,

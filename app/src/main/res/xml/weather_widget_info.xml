@@ -8,6 +8,7 @@
     android:minHeight="100dp"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/glance_default_loading_layout"
-    android:widgetCategory="home_screen"/>
+    android:widgetCategory="home_screen"
+    android:configure="com.chumakov123.gismeteoweather.WeatherWidgetConfigureActivity"/>
 
     <!--    android:resizeMode="horizontal|vertical"-->

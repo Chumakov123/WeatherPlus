@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.data.model
+package com.chumakov123.gismeteoweather.data.dto
 
 import kotlinx.serialization.Serializable
 

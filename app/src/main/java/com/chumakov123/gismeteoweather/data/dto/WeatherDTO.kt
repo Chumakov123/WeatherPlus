@@ -1,11 +1,10 @@
-package com.chumakov123.gismeteoweather.data.model
+package com.chumakov123.gismeteoweather.data.dto
 
-import androidx.annotation.DrawableRes
 import com.chumakov123.gismeteoweather.R
-import com.chumakov123.gismeteoweather.utils.WeatherDrawables
-import com.chumakov123.gismeteoweather.utils.WindDirections
-import com.chumakov123.gismeteoweather.utils.WindDirections.windDirections
-import com.chumakov123.gismeteoweather.widget.WeatherData
+import com.chumakov123.gismeteoweather.domain.model.WeatherData
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
+import com.chumakov123.gismeteoweather.domain.util.WindDirections
+import com.chumakov123.gismeteoweather.domain.util.WindDirections.windDirections
 import kotlinx.serialization.Serializable
 
 @Serializable
