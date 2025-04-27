@@ -38,7 +38,7 @@ class WeatherWidgetConfigureActivity : AppCompatActivity() {
         spinner.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
-            listOf("moscow-4368", "rostov-na-donu-5110" /*, …*/ )
+            listOf("auto", "moscow-4368", "rostov-na-donu-5110")
         )
 
         val btnConfirm: Button = findViewById(R.id.btn_confirm)

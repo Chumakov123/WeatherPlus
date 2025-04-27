@@ -1,5 +1,8 @@
 package com.chumakov123.gismeteoweather.data.repo
 
+import android.util.Log
+import com.chumakov123.gismeteoweather.data.dto.CityInfo
+import com.chumakov123.gismeteoweather.data.dto.parseCityJsonKxSafely
 import com.chumakov123.gismeteoweather.data.remote.GismeteoHtmlFetcher
 import com.chumakov123.gismeteoweather.data.dto.toWeatherDTO
 import com.chumakov123.gismeteoweather.data.dto.toWeatherData
@@ -8,18 +11,36 @@ import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 import com.chumakov123.gismeteoweather.domain.util.WindDirections
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.jsoup.Jsoup
 import kotlin.random.Random
+
+object GismeteoApi {
+    private const val TAG = "GismeteoApi"
+    private const val URL = "https://www.gismeteo.ru/mq/city/ip/"
+
+    suspend fun fetchCityByIp(): CityInfo = withContext(Dispatchers.IO) {
+        val response = Jsoup.connect(URL)
+            .ignoreContentType(true)
+            .execute()
+
+        val body = response.body()
+        Log.d(TAG, "raw city/ip response: $body")
+
+        parseCityJsonKxSafely(body)
+    }
+}
 
 object WeatherRepo {
     private val cache = mutableMapOf<String, Cached<WeatherInfo>>()
     private const val TTL_MS = 5 * 60 * 1000L
 
     suspend fun getWeatherInfo(cityCode: String): WeatherInfo {
-        println("getWeatherInfo")
         val now = System.currentTimeMillis()
         cache[cityCode]?.let { (info, ts) ->
             if (now - ts < TTL_MS) {
@@ -32,12 +53,25 @@ object WeatherRepo {
         return fresh
     }
 
-    private suspend fun fetchFromGismeteo(city: String): WeatherInfo {
-        println("fetchFromGismeteo")
-        var cityCode = city
-        if (cityCode == "auto") {
-            //TODO Найти ближайший город по IP или геолокации
+    private suspend fun resolveCityCodeOrFallback(
+        cityCode: String,
+        previousCity: String?
+    ): String {
+        if (cityCode != "auto") return cityCode
+
+        return try {
+            val info = GismeteoApi.fetchCityByIp()
+
+            "${info.slug}-${info.id}"
+        } catch (e: Exception) {
+            previousCity
+                ?: throw IllegalStateException("Не удалось определить город", e)
         }
+    }
+
+    private suspend fun fetchFromGismeteo(city: String, previousCity: String? = null): WeatherInfo {
+        val cityCode = resolveCityCodeOrFallback(city, previousCity)
+
         val todayHtml = GismeteoHtmlFetcher.getTodayHtml(cityCode)
         val tomorrowHtml = GismeteoHtmlFetcher.getTomorrowHtml(cityCode)
         val teenDaysHtml = GismeteoHtmlFetcher.get10DaysHtml(cityCode)
