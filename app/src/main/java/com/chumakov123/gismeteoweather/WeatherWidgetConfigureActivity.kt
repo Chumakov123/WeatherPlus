@@ -2,6 +2,7 @@ package com.chumakov123.gismeteoweather
 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
@@ -77,4 +78,12 @@ class WeatherWidgetConfigureActivity : AppCompatActivity() {
             finish()
         }
     }
+}
+
+fun Context.startWidgetConfigure(appWidgetId: Int) {
+    Intent(this, WeatherWidgetConfigureActivity::class.java).apply {
+        action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
+        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }.also(::startActivity)
 }

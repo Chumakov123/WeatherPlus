@@ -18,6 +18,7 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
@@ -57,6 +58,7 @@ import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherStateDefinition
 import com.chumakov123.gismeteoweather.domain.model.WidgetState
 import com.chumakov123.gismeteoweather.presentation.receiver.WeatherUpdateReceiver
+import com.chumakov123.gismeteoweather.startWidgetConfigure
 
 class WeatherGlanceWidget : GlanceAppWidget() {
 
@@ -170,6 +172,19 @@ fun WeatherMedium(weatherInfo: WeatherInfo.Available, forecastMode: ForecastMode
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Box(
+                    modifier = GlanceModifier
+                        .height(12.dp)
+                        .width(24.dp)
+                        .clickable(actionRunCallback<OpenConfigCallback>()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_settings),
+                        contentDescription = "Настройки",
+                        modifier = GlanceModifier.size(12.dp)
+                    )
+                }
                 Box(
                     modifier = GlanceModifier
                         .height(12.dp)
@@ -559,5 +574,18 @@ class SwitchForecastModeAction: ActionCallback {
         }
 
         WeatherGlanceWidget().updateAll(context)
+    }
+}
+
+class OpenConfigCallback : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters
+    ) {
+        val manager = GlanceAppWidgetManager(context)
+        val appWidgetId = manager.getAppWidgetId(glanceId)
+
+        context.startWidgetConfigure(appWidgetId)
     }
 }
