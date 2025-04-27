@@ -57,6 +57,7 @@ dependencies {
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.recyclerview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

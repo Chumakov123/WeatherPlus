@@ -46,6 +46,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.chumakov123.gismeteoweather.R
+import com.chumakov123.gismeteoweather.data.remote.GismeteoApi
 import com.chumakov123.gismeteoweather.domain.model.ForecastMode
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
@@ -572,7 +573,6 @@ class SwitchForecastModeAction: ActionCallback {
                 ForecastMode.ByHours
             )
         }
-
         WeatherGlanceWidget().updateAll(context)
     }
 }

@@ -1,40 +1,19 @@
 package com.chumakov123.gismeteoweather.data.repo
 
-import android.util.Log
-import com.chumakov123.gismeteoweather.data.dto.CityInfo
-import com.chumakov123.gismeteoweather.data.dto.parseCityJsonKxSafely
-import com.chumakov123.gismeteoweather.data.remote.GismeteoHtmlFetcher
 import com.chumakov123.gismeteoweather.data.dto.toWeatherDTO
 import com.chumakov123.gismeteoweather.data.dto.toWeatherData
+import com.chumakov123.gismeteoweather.data.remote.GismeteoApi
+import com.chumakov123.gismeteoweather.data.remote.GismeteoHtmlFetcher
 import com.chumakov123.gismeteoweather.data.remote.GismeteoWeatherHtmlParser
-import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
-import com.chumakov123.gismeteoweather.domain.util.WindDirections
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
-import kotlinx.coroutines.Dispatchers
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
+import com.chumakov123.gismeteoweather.domain.util.WindDirections
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.jsoup.Jsoup
 import kotlin.random.Random
-
-object GismeteoApi {
-    private const val TAG = "GismeteoApi"
-    private const val URL = "https://www.gismeteo.ru/mq/city/ip/"
-
-    suspend fun fetchCityByIp(): CityInfo = withContext(Dispatchers.IO) {
-        val response = Jsoup.connect(URL)
-            .ignoreContentType(true)
-            .execute()
-
-        val body = response.body()
-        Log.d(TAG, "raw city/ip response: $body")
-
-        parseCityJsonKxSafely(body)
-    }
-}
 
 object WeatherRepo {
     private val cache = mutableMapOf<String, Cached<WeatherInfo>>()
