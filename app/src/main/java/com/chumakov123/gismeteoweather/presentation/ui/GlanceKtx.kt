@@ -26,10 +26,11 @@ import androidx.glance.unit.ColorProvider
 fun AppWidgetBox(
     modifier: GlanceModifier = GlanceModifier,
     contentAlignment: Alignment = Alignment.TopStart,
+    transparencyPercent: Int = 50,
     content: @Composable () -> Unit
 ) {
     Box(
-        modifier = appWidgetBackgroundModifier().then(modifier),
+        modifier = appWidgetBackgroundModifier(transparencyPercent).then(modifier),
         contentAlignment = contentAlignment,
         content = content
     )
@@ -44,10 +45,11 @@ fun AppWidgetColumn(
     modifier: GlanceModifier = GlanceModifier,
     verticalAlignment: Alignment.Vertical = Alignment.Top,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
-    content: @Composable ColumnScope.() -> Unit
+    transparencyPercent: Int = 50,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
-        modifier = appWidgetBackgroundModifier().then(modifier),
+        modifier = appWidgetBackgroundModifier(transparencyPercent).then(modifier),
         verticalAlignment = verticalAlignment,
         horizontalAlignment = horizontalAlignment,
         content = content,
@@ -55,10 +57,10 @@ fun AppWidgetColumn(
 }
 
 @Composable
-fun appWidgetBackgroundModifier() = GlanceModifier
+fun appWidgetBackgroundModifier(transparencyPercent: Int = 50) = GlanceModifier
     .fillMaxSize()
     .appWidgetBackground()
-    .background(ColorProvider(Color(0x80000000)))
+    .background(ColorProvider(Color(0, 0, 0, (255 * (100 - transparencyPercent) / 100).coerceIn(0, 255))))
     .appWidgetBackgroundCornerRadius()
 
 fun GlanceModifier.appWidgetBackgroundCornerRadius(): GlanceModifier {

@@ -23,9 +23,13 @@ class WeatherUpdateReceiver : BroadcastReceiver() {
             val manager   = GlanceAppWidgetManager(context)
             val glanceIds = manager.getGlanceIds(WeatherGlanceWidget::class.java)
 
-            val prevStates: Map<GlanceId, WidgetState> = glanceIds.associateWith { glanceId ->
+            val prevStates = glanceIds.associateWith { glanceId ->
                 getAppWidgetState(context, WeatherStateDefinition, glanceId)
             }
+
+            val cityToIds: Map<String, List<GlanceId>> = prevStates
+                .entries
+                .groupBy({ it.value.cityCode }, { it.key })
 
             glanceIds.forEach { glanceId ->
                 updateAppWidgetState(context, WeatherStateDefinition, glanceId) { old ->
@@ -34,26 +38,27 @@ class WeatherUpdateReceiver : BroadcastReceiver() {
             }
             WeatherGlanceWidget().updateAll(context)
 
-            val uniqueCities: Set<String> = prevStates.values
-                .map { it.cityCode }
-                .toSet()
+            cityToIds.forEach { (city, idsForCity) ->
+                launch {
+                    val newInfo: WeatherInfo = runCatching { WeatherRepo.getWeatherInfo(city) }
+                        .getOrElse { err ->
+                            val last =
+                                idsForCity.firstNotNullOfOrNull { prevStates[it]!!.lastAvailable }
+                            last ?: WeatherInfo.Unavailable("Не удалось получить данные: ${err.message}")
+                        }
 
-            val fetched: Map<String, WeatherInfo> = uniqueCities.associateWith { city ->
-                runCatching { WeatherRepo.getWeatherInfo(city) }
-                    .getOrElse {
-                        prevStates.values
-                            .first { it.cityCode == city }
-                            .weatherInfo
+                    idsForCity.forEach { glanceId ->
+                        updateAppWidgetState(context, WeatherStateDefinition, glanceId) { old ->
+                            old.copy(
+                                weatherInfo  = newInfo,
+                                lastAvailable = (newInfo as? WeatherInfo.Available) ?: old.lastAvailable
+                            )
+                        }
+                        WeatherGlanceWidget().update(context, glanceId)
                     }
-            }
-            glanceIds.forEach { glanceId ->
-                val oldState = prevStates[glanceId]!!
-                val newInfo  = fetched[oldState.cityCode]!!
-                updateAppWidgetState(context, WeatherStateDefinition, glanceId) { old ->
-                    old.copy(weatherInfo = newInfo)
                 }
             }
-            WeatherGlanceWidget().updateAll(context)
+
             WeatherAlarmScheduler.scheduleNext(context)
         }
     }

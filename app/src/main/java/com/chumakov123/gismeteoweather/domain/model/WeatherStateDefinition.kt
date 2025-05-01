@@ -59,5 +59,7 @@ object WeatherStateDefinition : GlanceStateDefinition<WidgetState> {
 data class WidgetState(
     val cityCode: String = "auto",
     val forecastMode: ForecastMode = ForecastMode.ByHours,
-    val weatherInfo: WeatherInfo = WeatherInfo.Unavailable("no data")
+    val weatherInfo: WeatherInfo = WeatherInfo.Unavailable("Нет данных"),
+    val appearance: WidgetAppearance = WidgetAppearance(),
+    val lastAvailable: WeatherInfo.Available? = null
 )
