@@ -50,4 +50,16 @@ object Utils {
         val newDate = this.date.plus(DatePeriod(days = days))
         return LocalDateTime(newDate, this.time)
     }
+
+    fun normalizeIconString(rawIconString: String): String {
+        var iconString = rawIconString.replace("_c0", "")
+
+        if (!WeatherDrawables.drawableMap.containsKey(iconString)) {
+            val underscoreIndex = iconString.indexOf('_')
+            if (underscoreIndex != -1 && underscoreIndex + 1 < iconString.length) {
+                iconString = iconString.substring(underscoreIndex + 1)
+            }
+        }
+        return iconString
+    }
 }

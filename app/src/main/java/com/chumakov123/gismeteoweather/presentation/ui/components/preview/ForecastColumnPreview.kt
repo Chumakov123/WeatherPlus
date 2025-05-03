@@ -1,0 +1,148 @@
+package com.chumakov123.gismeteoweather.presentation.ui.components.preview
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.chumakov123.gismeteoweather.domain.model.WeatherData
+import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
+import com.chumakov123.gismeteoweather.domain.util.TemperatureGradation.interpolateTemperatureColor
+import com.chumakov123.gismeteoweather.domain.util.WindSpeedGradation.interpolateWindColor
+
+@Composable
+fun ForecastColumnPreview(
+    modifier: Modifier = Modifier,
+    weatherData: WeatherData,
+    date: String,
+    dateColor: Color = Color.White,
+    appearance: WidgetAppearance,
+) {
+    Column(
+        modifier = modifier
+            .padding(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Дата
+        Text(
+            text = date,
+            color = dateColor,
+            style = TextStyle(
+                fontSize = 12.sp,
+                color = Color.White,
+                platformStyle = PlatformTextStyle(includeFontPadding = false)
+            )
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        // Иконка погоды
+        Image(
+            painter = painterResource(id = weatherData.icon),
+            contentDescription = weatherData.description,
+            modifier = Modifier.size(32.dp)
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        // Основная / минимальная температура
+        val tempColor = if (appearance.useColorIndicators)
+            interpolateTemperatureColor(weatherData.temperature)
+        else
+            Color.White
+
+        if (weatherData.temperatureMin == null) {
+            Text(
+                text = "${if (weatherData.temperature > 0) "+" else ""}${weatherData.temperature}°",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    color = tempColor,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                )
+            )
+        } else {
+            val tempMinColor = if (appearance.useColorIndicators)
+                interpolateTemperatureColor(weatherData.temperatureMin)
+            else
+                Color.White
+
+            Text(
+                text = "${if (weatherData.temperature > 0) "+" else ""}${weatherData.temperature}°",
+                style = TextStyle(
+                    fontSize = 12.sp,
+                    color = tempColor,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                )
+            )
+            Text(
+                text = "${if (weatherData.temperatureMin > 0) "+" else ""}${weatherData.temperatureMin}°",
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    color = tempMinColor,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                )
+            )
+        }
+
+        // Ветер
+        if (appearance.showWind) {
+            Spacer(Modifier.height(4.dp))
+            val windColor = if (appearance.useColorIndicators)
+                interpolateWindColor(weatherData.windGust)
+            else
+                Color.White
+
+            val windText = if (weatherData.windDirection != "—") {
+                if (weatherData.windSpeed != weatherData.windGust)
+                    "${weatherData.windSpeed}—${weatherData.windGust}, ${weatherData.windDirection}"
+                else
+                    "${weatherData.windSpeed}, ${weatherData.windDirection}"
+            } else {
+                "Нет"
+            }
+
+            Text(
+                text = windText,
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    color = windColor,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                )
+            )
+        }
+
+        // Осадки
+        if (appearance.showPrecipitation) {
+            Spacer(Modifier.height(4.dp))
+            val precColor = if (weatherData.precipitation != 0.0)
+                Color(66, 165, 245)
+            else
+                Color.LightGray
+
+            Text(
+                text = if (weatherData.precipitation != 0.0)
+                    "${weatherData.precipitation} мм"
+                else
+                    "—",
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    color = precColor,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                )
+            )
+        }
+    }
+}

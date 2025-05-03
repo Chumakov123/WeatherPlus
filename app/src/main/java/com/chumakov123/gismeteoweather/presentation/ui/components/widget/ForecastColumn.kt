@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.presentation.ui.components
+package com.chumakov123.gismeteoweather.presentation.ui.components.widget
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -83,9 +83,12 @@ fun ForecastColumn(
                 Color.White
             Text(
                 text = if (weatherData.windDirection != "—")
-                    "${weatherData.windSpeed}—${weatherData.windGust}, ${weatherData.windDirection}"
+                    if (weatherData.windSpeed != weatherData.windGust)
+                        "${weatherData.windSpeed}—${weatherData.windGust}, ${weatherData.windDirection}"
+                    else
+                        "${weatherData.windSpeed}, ${weatherData.windDirection}"
                 else
-                    "—",
+                    "Нет",
                 style = TextStyle(
                     color = ColorProvider(windColor),
                     fontSize = 10.sp

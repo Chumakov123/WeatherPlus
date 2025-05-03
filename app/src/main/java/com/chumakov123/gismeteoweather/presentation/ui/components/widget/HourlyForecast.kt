@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.presentation.ui.components
+package com.chumakov123.gismeteoweather.presentation.ui.components.widget
 
 import androidx.compose.runtime.Composable
 import androidx.glance.GlanceModifier

@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.presentation.ui.components
+package com.chumakov123.gismeteoweather.presentation.ui.components.widget
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -112,7 +112,10 @@ fun CurrentWeather(
                 )
                 Text(
                     text = if (weatherInfo.now.windDirection != "—")
-                        "${weatherInfo.now.windSpeed}—${weatherInfo.now.windGust} м/c, ${weatherInfo.now.windDirection}"
+                        if (weatherInfo.now.windSpeed != weatherInfo.now.windGust)
+                            "${weatherInfo.now.windSpeed}—${weatherInfo.now.windGust} м/c, ${weatherInfo.now.windDirection}"
+                        else
+                            "${weatherInfo.now.windSpeed} м/c, ${weatherInfo.now.windDirection}"
                     else
                         "Нет",
                     style = TextStyle(

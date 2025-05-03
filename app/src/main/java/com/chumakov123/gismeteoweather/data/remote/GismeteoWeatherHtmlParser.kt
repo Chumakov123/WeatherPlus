@@ -8,6 +8,7 @@ import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
 import com.chumakov123.gismeteoweather.domain.model.WeatherIconInfo
 import com.chumakov123.gismeteoweather.domain.model.WindData
+import com.chumakov123.gismeteoweather.domain.util.Utils.normalizeIconString
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -49,13 +50,7 @@ object GismeteoWeatherHtmlParser {
                 else
                     "${icon.topLayer}"
 
-            iconString = iconString.replace("_c0","")
-            if (!WeatherDrawables.drawableMap.containsKey(iconString)) {
-                val underscoreIndex = iconString.indexOf('_')
-                if (underscoreIndex != -1) {
-                    iconString = iconString.substring(underscoreIndex + 1)
-                }
-            }
+            iconString = normalizeIconString(iconString)
 
             val iconDrawable = WeatherDrawables.drawableMap[iconString] ?: R.drawable.c3
 
