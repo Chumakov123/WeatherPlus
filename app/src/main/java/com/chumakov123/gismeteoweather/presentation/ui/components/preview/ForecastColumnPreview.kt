@@ -32,8 +32,7 @@ fun ForecastColumnPreview(
     appearance: WidgetAppearance,
 ) {
     Column(
-        modifier = modifier
-            .padding(4.dp),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -50,16 +49,12 @@ fun ForecastColumnPreview(
             overflow = TextOverflow.Ellipsis
         )
 
-        Spacer(Modifier.height(4.dp))
-
         // Иконка погоды
         Image(
             painter = painterResource(id = weatherData.icon),
             contentDescription = weatherData.description,
             modifier = Modifier.size(32.dp)
         )
-
-        Spacer(Modifier.height(4.dp))
 
         // Основная / минимальная температура
         val tempColor = if (appearance.useColorIndicators)
@@ -108,7 +103,6 @@ fun ForecastColumnPreview(
 
         // Ветер
         if (appearance.showWind) {
-            Spacer(Modifier.height(4.dp))
             val windColor = if (appearance.useColorIndicators)
                 interpolateWindColor(weatherData.windGust)
             else
@@ -120,7 +114,7 @@ fun ForecastColumnPreview(
                 else
                     "${weatherData.windSpeed}, ${weatherData.windDirection}"
             } else {
-                "Нет"
+                "—"
             }
 
             Text(
@@ -137,7 +131,6 @@ fun ForecastColumnPreview(
 
         // Осадки
         if (appearance.showPrecipitation) {
-            Spacer(Modifier.height(4.dp))
             val precColor = if (weatherData.precipitation != 0.0)
                 Color(66, 165, 245)
             else

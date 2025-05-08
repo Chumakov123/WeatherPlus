@@ -9,6 +9,7 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.text.Text
@@ -37,9 +38,10 @@ fun ForecastColumn(
             text = date,
             style = TextStyle(
                 color = ColorProvider(dateColor),
-                fontSize = 12.sp
+                fontSize = 12.sp,
             ),
-            maxLines = 1
+            maxLines = 1,
+            modifier = GlanceModifier.height(14.dp)
         )
 
         // Иконка
@@ -62,7 +64,8 @@ fun ForecastColumn(
                     color = ColorProvider(temperatureColor),
                     fontSize = 14.sp
                 ),
-                maxLines = 1
+                maxLines = 1,
+                modifier = GlanceModifier.height(16.dp)
             )
         } else {
             val temperatureColorMin = if (appearance.useColorIndicators)
@@ -76,7 +79,8 @@ fun ForecastColumn(
                     color = ColorProvider(temperatureColor),
                     fontSize = 12.sp
                 ),
-                maxLines = 1
+                maxLines = 1,
+                modifier = GlanceModifier.height(14.dp)
             )
             Text(
                 text = "${if (weatherData.temperatureMin > 0) "+" else ""}${weatherData.temperatureMin}°",
@@ -84,7 +88,8 @@ fun ForecastColumn(
                     color = ColorProvider(temperatureColorMin),
                     fontSize = 10.sp
                 ),
-                maxLines = 1
+                maxLines = 1,
+                modifier = GlanceModifier.height(12.dp)
             )
         }
 
@@ -102,12 +107,13 @@ fun ForecastColumn(
                     else
                         "${weatherData.windSpeed}, ${weatherData.windDirection}"
                 else
-                    "Нет",
+                    "—",
                 style = TextStyle(
                     color = ColorProvider(windColor),
                     fontSize = 10.sp
                 ),
-                maxLines = 1
+                maxLines = 1,
+                modifier = GlanceModifier.height(12.dp)
             )
         }
 
@@ -125,7 +131,8 @@ fun ForecastColumn(
                         ColorProvider(Color.LightGray),
                     fontSize = 10.sp
                 ),
-                maxLines = 1
+                maxLines = 1,
+                modifier = GlanceModifier.height(12.dp)
             )
         }
     }

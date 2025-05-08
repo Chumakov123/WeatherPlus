@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -33,17 +34,33 @@ fun WeatherWidgetPreview(weatherInfo: WeatherInfo.Available, appearance: WidgetA
             updateTimeText = if (appearance.showUpdateTime) Utils.formatDateTime(weatherInfo.updateTime) else null,
             isLoading      = false,
         )
-        CurrentWeatherPreview(weatherInfo, modifier = Modifier.fillMaxWidth())
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            if (forecastMode == ForecastMode.ByHours) {
-                HourlyForecastPreview(weatherInfo, modifier = Modifier.fillMaxSize(), appearance = appearance)
-            } else {
-                DailyForecastPreview(weatherInfo, modifier = Modifier.fillMaxSize(), appearance = appearance)
+        if (appearance.showCurrentWeather) {
+            CurrentWeatherPreview(weatherInfo, modifier = Modifier.fillMaxWidth())
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                if (forecastMode == ForecastMode.ByHours) {
+                    HourlyForecastPreview(weatherInfo, modifier = Modifier.fillMaxSize(), appearance = appearance)
+                } else {
+                    DailyForecastPreview(weatherInfo, modifier = Modifier.fillMaxSize(), appearance = appearance)
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                if (forecastMode == ForecastMode.ByHours) {
+                    HourlyForecastPreview(weatherInfo, modifier = Modifier.fillMaxWidth(), appearance = appearance)
+                    DailyForecastPreview(weatherInfo, modifier = Modifier.fillMaxWidth(), appearance = appearance)
+                } else {
+                    DailyForecastPreview(weatherInfo, modifier = Modifier.fillMaxWidth(), appearance = appearance)
+                    HourlyForecastPreview(weatherInfo, modifier = Modifier.fillMaxWidth(), appearance = appearance)
+                }
             }
         }
+
     }
 }
 

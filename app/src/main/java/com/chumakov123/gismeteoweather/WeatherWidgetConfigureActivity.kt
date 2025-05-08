@@ -5,18 +5,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.res.Resources
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,15 +24,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -51,7 +43,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,14 +53,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -115,18 +104,6 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
         ).takeIf { it != AppWidgetManager.INVALID_APPWIDGET_ID }
             ?: return finish()
 
-
-        val options = AppWidgetManager
-            .getInstance(this)
-            .getAppWidgetOptions(appWidgetId)
-
-        //TODO Размеры не совпадают с реальными
-        val currentWidthDp  = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-        val currentHeightDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
-        Log.d("CONFIGURE", "currentWidthDp $currentWidthDp")
-        Log.d("CONFIGURE", "currentHeightDp $currentHeightDp")
-
-
         val manager = GlanceAppWidgetManager(this)
         val glanceId = runBlocking {
             manager
@@ -161,7 +138,6 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
                             previewWeatherState
                         else
                             currentState,
-                        previewSizeDp = DpSize(currentWidthDp.dp, currentHeightDp.dp),
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -220,10 +196,23 @@ fun WeatherWidgetConfigureScreen(
     initialState: WidgetState,
     onConfirm: (OptionItem, WidgetAppearance, ForecastMode) -> Unit,
     modifier: Modifier = Modifier,
-    previewSizeDp: DpSize,
     previewWeatherState: WidgetState
 ) {
     var previewState by remember { mutableStateOf(previewWeatherState) }
+
+    val configuration = LocalConfiguration.current
+    val screenHeightDp = configuration.screenHeightDp.dp
+    val screenWidthDp = configuration.screenWidthDp.dp
+
+    val previewBoxHeight = screenHeightDp / 3f
+
+    val previewPadding = 32.dp
+    val previewRatio = 0.64f
+    val previewWidth = screenWidthDp - previewPadding
+    val previewHeight = previewWidth * previewRatio
+
+    val previewSizeDp = DpSize(previewWidth, previewHeight)
+
 
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE) }
@@ -341,15 +330,10 @@ fun WeatherWidgetConfigureScreen(
             contentPadding = innerPadding
         ) {
             if (previewState.weatherInfo is WeatherInfo.Available) {
-                val cellWidth = 74.dp
-                val cellHeight = 74.dp
-
-                val widgetWidth = cellWidth * 5
-                val widgetHeight = cellHeight * 4
                 item {
                     Box(modifier = modifier
                         .padding(0.dp)
-                        .height(widgetHeight),
+                        .height(previewBoxHeight),
                         contentAlignment = Alignment.Center)
                     {
                         Image(
@@ -359,7 +343,11 @@ fun WeatherWidgetConfigureScreen(
                             alignment    = Alignment.TopStart,
                             modifier     = Modifier.fillMaxWidth()
                         )
-                        WeatherWidgetPreview(weatherInfo = previewState.weatherInfo as WeatherInfo.Available, appearance = previewState.appearance, previewSizeDp = previewSizeDp, previewState.forecastMode)
+                        WeatherWidgetPreview(
+                            weatherInfo = previewState.weatherInfo as WeatherInfo.Available,
+                            appearance = previewState.appearance,
+                            previewSizeDp = previewSizeDp,
+                            previewState.forecastMode)
                     }
                 }
             }
@@ -554,6 +542,7 @@ fun TransparencySetting(
     backgroundTransparency: Float,
     onTransparencyChange: (Float) -> Unit
 ) {
+    Text("Прозрачность", modifier = Modifier.padding(horizontal = 16.dp))
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
