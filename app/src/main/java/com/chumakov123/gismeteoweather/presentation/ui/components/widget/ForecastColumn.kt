@@ -28,26 +28,33 @@ fun ForecastColumn(
     modifier: GlanceModifier = GlanceModifier
 ) {
     Column(
-        modifier = modifier.padding(4.dp),
+        modifier = modifier.padding(0.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Дата
         Text(
             text = date,
             style = TextStyle(
                 color = ColorProvider(dateColor),
                 fontSize = 12.sp
-            )
+            ),
+            maxLines = 1
         )
+
+        // Иконка
         Image(
             provider = ImageProvider(weatherData.icon),
             contentDescription = weatherData.description,
             modifier = GlanceModifier.size(32.dp),
         )
+
+        // Температура
         val temperatureColor = if (appearance.useColorIndicators)
             interpolateTemperatureColor(weatherData.temperature)
         else
             Color.White
+
         if (weatherData.temperatureMin == null) {
             Text(
                 text = "${if (weatherData.temperature > 0) "+" else ""}${weatherData.temperature}°",
@@ -55,18 +62,21 @@ fun ForecastColumn(
                     color = ColorProvider(temperatureColor),
                     fontSize = 14.sp
                 ),
+                maxLines = 1
             )
         } else {
             val temperatureColorMin = if (appearance.useColorIndicators)
                 interpolateTemperatureColor(weatherData.temperatureMin)
             else
                 Color.White
+
             Text(
                 text = "${if (weatherData.temperature > 0) "+" else ""}${weatherData.temperature}°",
                 style = TextStyle(
                     color = ColorProvider(temperatureColor),
                     fontSize = 12.sp
                 ),
+                maxLines = 1
             )
             Text(
                 text = "${if (weatherData.temperatureMin > 0) "+" else ""}${weatherData.temperatureMin}°",
@@ -74,13 +84,17 @@ fun ForecastColumn(
                     color = ColorProvider(temperatureColorMin),
                     fontSize = 10.sp
                 ),
+                maxLines = 1
             )
         }
+
+        // Ветер
         if (appearance.showWind) {
             val windColor = if (appearance.useColorIndicators)
                 interpolateWindColor(weatherData.windGust)
             else
                 Color.White
+
             Text(
                 text = if (weatherData.windDirection != "—")
                     if (weatherData.windSpeed != weatherData.windGust)
@@ -93,9 +107,11 @@ fun ForecastColumn(
                     color = ColorProvider(windColor),
                     fontSize = 10.sp
                 ),
+                maxLines = 1
             )
         }
 
+        // Осадки
         if (appearance.showPrecipitation) {
             Text(
                 text = if (weatherData.precipitation != 0.0)
@@ -105,9 +121,11 @@ fun ForecastColumn(
                 style = TextStyle(
                     color = if (weatherData.precipitation != 0.0)
                         ColorProvider(Color(66, 165, 245, 255))
-                    else ColorProvider(Color.LightGray),
+                    else
+                        ColorProvider(Color.LightGray),
                     fontSize = 10.sp
                 ),
+                maxLines = 1
             )
         }
     }

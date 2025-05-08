@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
@@ -44,7 +45,9 @@ fun ForecastColumnPreview(
                 fontSize = 12.sp,
                 color = Color.White,
                 platformStyle = PlatformTextStyle(includeFontPadding = false)
-            )
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
 
         Spacer(Modifier.height(4.dp))
@@ -71,7 +74,9 @@ fun ForecastColumnPreview(
                     fontSize = 14.sp,
                     color = tempColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         } else {
             val tempMinColor = if (appearance.useColorIndicators)
@@ -85,7 +90,9 @@ fun ForecastColumnPreview(
                     fontSize = 12.sp,
                     color = tempColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = "${if (weatherData.temperatureMin > 0) "+" else ""}${weatherData.temperatureMin}°",
@@ -93,7 +100,9 @@ fun ForecastColumnPreview(
                     fontSize = 10.sp,
                     color = tempMinColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
@@ -120,7 +129,9 @@ fun ForecastColumnPreview(
                     fontSize = 10.sp,
                     color = windColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
@@ -141,7 +152,9 @@ fun ForecastColumnPreview(
                     fontSize = 10.sp,
                     color = precColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

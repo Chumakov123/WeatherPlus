@@ -1,9 +1,19 @@
 package com.chumakov123.gismeteoweather.presentation.receiver
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.state.updateAppWidgetState
+import com.chumakov123.gismeteoweather.domain.model.WeatherStateDefinition
 import com.chumakov123.gismeteoweather.presentation.ui.WeatherGlanceWidget
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.math.max
 
 /**
  * Handle system events for AppWidgets with the provided GlanceAppWidget instance.
@@ -12,6 +22,43 @@ import com.chumakov123.gismeteoweather.presentation.ui.WeatherGlanceWidget
  */
 class WeatherGlanceWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget = WeatherGlanceWidget()
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        Log.d("WeatherGlanceWidgetReceiver", "onAppWidgetOptionsChanged")
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+
+        val widthDp = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+
+        val columnMinWidthDp = 56
+        val columns = max(1, widthDp / columnMinWidthDp)
+
+        val heightDp = newOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+        val rowMinHeightDp = 65
+        val rows = max(1, heightDp / rowMinHeightDp)
+
+        CoroutineScope(Dispatchers.Default).launch {
+            val glanceManager = GlanceAppWidgetManager(context)
+            val glanceIds = glanceManager.getGlanceIds(WeatherGlanceWidget::class.java)
+
+            val glanceId = glanceIds.firstOrNull {
+                glanceManager.getAppWidgetId(it) == appWidgetId
+            } ?: return@launch
+
+            updateAppWidgetState(context, WeatherStateDefinition, glanceId) { old ->
+                old.copy(
+                    forecastColumns = columns,
+                    forecastRows    = rows
+                )
+            }
+
+            WeatherGlanceWidget().update(context, glanceId)
+        }
+    }
 
     /**
      * Called when the first instance of the widget is placed. Since all instances share the same

@@ -24,9 +24,11 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.padding
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -47,38 +49,27 @@ import com.chumakov123.gismeteoweather.presentation.ui.components.widget.WidgetH
 import com.chumakov123.gismeteoweather.startWidgetConfigure
 
 class WeatherGlanceWidget : GlanceAppWidget() {
-
-    companion object {
-        private val thinMode = DpSize(120.dp, 120.dp)
-        private val smallMode = DpSize(184.dp, 184.dp)
-        private val mediumMode = DpSize(260.dp, 200.dp)
-        private val largeMode = DpSize(260.dp, 280.dp)
-    }
-
     // Override the state definition to use our custom one using Kotlin serialization
     override val stateDefinition = WeatherStateDefinition
 
-    // Define the supported sizes for this widget.
-    // The system will decide which one fits better based on the available space
-    override val sizeMode: SizeMode = SizeMode.Responsive(
-        setOf(thinMode, smallMode, mediumMode, largeMode)
-    )
-
-
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        //saveHtmlToFile(context)
         provideContent {
             // Get the stored stated based on our custom state definition.
             val widgetState = currentState<WidgetState>()
-            // It will be one of the provided ones
-            val size = LocalSize.current
             GlanceTheme {
                 val transparency = widgetState.appearance.backgroundTransparencyPercent
                 when (widgetState.weatherInfo) {
                     WeatherInfo.Loading -> {
                         if (widgetState.lastAvailable != null) {
-                            WeatherMedium(widgetState.lastAvailable, widgetState.forecastMode, widgetState.appearance, isLoading = true)
+                            WeatherMedium(
+                                weatherInfo = widgetState.lastAvailable,
+                                forecastMode = widgetState.forecastMode,
+                                forecastColumns = widgetState.forecastColumns,
+                                forecastRows = widgetState.forecastRows,
+                                appearance = widgetState.appearance,
+                                isLoading = true)
                         } else {
                             AppWidgetBox(
                                 contentAlignment = Alignment.Center,
@@ -90,18 +81,13 @@ class WeatherGlanceWidget : GlanceAppWidget() {
 
                     }
                     is WeatherInfo.Available -> {
-                        // Based on the size render different UI
                         WeatherMedium(
-                            widgetState.weatherInfo,
-                            widgetState.forecastMode,
-                            widgetState.appearance,
+                            weatherInfo = widgetState.weatherInfo,
+                            forecastMode = widgetState.forecastMode,
+                            forecastColumns = widgetState.forecastColumns,
+                            forecastRows = widgetState.forecastRows,
+                            appearance = widgetState.appearance,
                         )
-//                        when (size) {
-//                            thinMode -> WeatherThin(widgetState.weatherInfo)
-//                            smallMode -> WeatherSmall(widgetState.weatherInfo)
-//                            mediumMode -> WeatherMedium(widgetState.weatherInfo, widgetState.forecastMode)
-//                            largeMode -> WeatherLarge(widgetState.weatherInfo, widgetState.forecastMode)
-//                        }
                     }
                     is WeatherInfo.Unavailable -> {
                         AppWidgetColumn(
@@ -125,80 +111,65 @@ class WeatherGlanceWidget : GlanceAppWidget() {
 }
 
 @Composable
-fun WeatherThin(weatherInfo: WeatherInfo.Available) {
-    AppWidgetColumn(GlanceModifier.clickable(actionRunCallback<UpdateWeatherAction>())) { //TODO вместо обновления виджета, открывать приложение по нажатию
-        CurrentWeather(
-            weatherInfo,
-            modifier = GlanceModifier.fillMaxSize()
-        )
-    }
-}
-
-@Composable
-fun WeatherSmall(weatherInfo: WeatherInfo.Available) {
-    AppWidgetColumn(GlanceModifier.clickable(actionRunCallback<UpdateWeatherAction>())) {
-        Row(
-            modifier = GlanceModifier.wrapContentHeight().fillMaxWidth(),
-            horizontalAlignment = Alignment.Start
-        ) {
-            CurrentWeather(weatherInfo, modifier = GlanceModifier.fillMaxSize().defaultWeight())
-            WeatherIcon(weatherInfo, modifier = GlanceModifier.fillMaxWidth().defaultWeight())
-            //PlaceWeather(weatherInfo, modifier = GlanceModifier.fillMaxWidth().defaultWeight())
-        }
-    }
-}
-
-@Composable
 fun WeatherMedium(
     weatherInfo: WeatherInfo.Available,
     forecastMode: ForecastMode,
+    forecastColumns: Int,
+    forecastRows: Int,
     appearance: WidgetAppearance,
     isLoading: Boolean = false
 ) {
+    val rows = if (appearance.showCurrentWeather) forecastRows - 1 else forecastRows
     AppWidgetColumn(GlanceModifier.clickable(actionRunCallback<UpdateWeatherAction>()), transparencyPercent = appearance.backgroundTransparencyPercent) {
         WidgetHeader(
-            placeName      = weatherInfo.placeName,
-            updateTimeText = if (appearance.showUpdateTime) Utils.formatDateTime(weatherInfo.updateTime) else null,
-            isLoading      = isLoading
+            placeName       = weatherInfo.placeName,
+            updateTimeText  = if (appearance.showUpdateTime) Utils.formatDateTime(weatherInfo.updateTime) else null,
+            isLoading       = isLoading,
+            forecastColumns = forecastColumns
         )
-        CurrentWeather(weatherInfo, GlanceModifier.fillMaxWidth())
-        Row(
-            modifier = GlanceModifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            if (forecastMode == ForecastMode.ByHours) {
-                HourlyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize(), appearance = appearance)
+        if (appearance.showCurrentWeather) {
+            CurrentWeather(
+                weatherInfo,
+                GlanceModifier.fillMaxWidth(),
+                forecastColumns = forecastColumns,
+                forecastRows = forecastRows)
+        }
+        if (rows >= 1) {
+            if (rows >= 2) {
+                Column(
+                    modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (forecastMode == ForecastMode.ByHours) {
+                        HourlyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize(), appearance = appearance, forecastColumns = forecastColumns)
+                    } else {
+                        DailyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize(), appearance = appearance, forecastColumns = forecastColumns)
+                    }
+                }
+                Column(
+                    modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (forecastMode == ForecastMode.ByHours) {
+                        DailyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize(), appearance = appearance, forecastColumns = forecastColumns)
+                    } else {
+                        HourlyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize(), appearance = appearance, forecastColumns = forecastColumns)
+                    }
+                }
             } else {
-                DailyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize(), appearance = appearance)
+                Column(
+                    modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
+                ) {
+                    if (forecastMode == ForecastMode.ByHours) {
+                        HourlyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize(), appearance = appearance, forecastColumns = forecastColumns)
+                    } else {
+                        DailyForecast(weatherInfo, modifier = GlanceModifier.fillMaxSize(), appearance = appearance, forecastColumns = forecastColumns)
+                    }
+                }
             }
         }
     }
 }
-
-//@Composable
-//fun WeatherLarge(weatherInfo: WeatherInfo.Available, forecastMode: ForecastMode) {
-//    AppWidgetColumn(GlanceModifier.clickable(actionRunCallback<UpdateWeatherAction>())) {
-//        Row(
-//            modifier = GlanceModifier.wrapContentHeight().fillMaxWidth(),
-//            horizontalAlignment = Alignment.Start
-//        ) {
-//            WeatherIcon(weatherInfo, modifier = GlanceModifier.fillMaxWidth().defaultWeight())
-//            //PlaceWeather(weatherInfo, modifier = GlanceModifier.fillMaxWidth().defaultWeight())
-//        }
-//        Row(
-//            modifier = GlanceModifier.wrapContentHeight().fillMaxWidth(),
-//            horizontalAlignment = Alignment.Start
-//        ) {
-//            CurrentWeather(
-//                weatherInfo,
-//                modifier = GlanceModifier.wrapContentHeight()
-//            )
-//            HourlyForecast(weatherInfo, modifier = GlanceModifier.fillMaxWidth())
-//        }
-//        Spacer(GlanceModifier.size(8.dp))
-//        //DailyForecast(weatherInfo)
-//    }
-//}
 
 /**
  * Force update the weather info after user click

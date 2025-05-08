@@ -25,7 +25,7 @@ object Utils {
     }
     fun formatDateTime(timeMillis: Long): String {
         val date = Date(timeMillis)
-        val dateFormat = SimpleDateFormat("MMM d, HH:mm", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("d MMM, HH:mm", Locale.getDefault())
         return dateFormat.format(date)
     }
 

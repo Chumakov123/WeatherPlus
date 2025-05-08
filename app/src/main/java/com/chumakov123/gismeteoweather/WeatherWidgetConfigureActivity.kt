@@ -404,6 +404,18 @@ fun WeatherWidgetConfigureScreen(
                     HorizontalDivider(modifier = Modifier.fillMaxWidth())
 
                     SettingRow(
+                        title = "Текущая погода",
+                        checked = previewState.appearance.showCurrentWeather,
+                        onCheckedChange = { newValue ->
+                            previewState = previewState.copy(
+                                appearance = previewState.appearance.copy(showCurrentWeather = newValue)
+                            )
+                        }
+                    )
+
+                    HorizontalDivider(modifier = Modifier.fillMaxWidth())
+
+                    SettingRow(
                         title = "Цветовая индикация",
                         checked = previewState.appearance.useColorIndicators,
                         onCheckedChange = { newValue ->

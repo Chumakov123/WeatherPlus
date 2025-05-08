@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -37,23 +38,28 @@ fun CurrentWeatherPreview(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,) {
+                horizontalArrangement = Arrangement.Center,
+            ) {
                 Text(
                     text = "${if (weatherInfo.now.temperature > 0) "+" else ""}${weatherInfo.now.temperature}°",
                     style = TextStyle(
                         color = Color.White,
                         fontSize = 24.sp
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (weatherInfo.now.temperatureMin != null) {
-                    Row() {
+                    Row {
                         Text(
                             text = "${weatherInfo.now.temperatureMin}°",
                             style = TextStyle(
                                 color = Color.LightGray,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
-                            )
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -65,7 +71,9 @@ fun CurrentWeatherPreview(
                     color = Color.White,
                     fontSize = 11.sp,
                     textAlign = TextAlign.Center
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
         Spacer(modifier = Modifier.width(4.dp))
@@ -80,13 +88,15 @@ fun CurrentWeatherPreview(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.weight(1f)
         ) {
-            Row{
+            Row {
                 Text(
                     text = "Осадки: ",
                     style = TextStyle(
                         color = Color.LightGray,
                         fontSize = 11.sp
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = if (weatherInfo.now.precipitation != 0.0)
@@ -96,17 +106,21 @@ fun CurrentWeatherPreview(
                     style = TextStyle(
                         color = Color.White,
                         fontSize = 11.sp
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Row{
+            Row {
                 Text(
                     text = "Ветер: ",
                     style = TextStyle(
                         color = Color.LightGray,
                         fontSize = 11.sp
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = if (weatherInfo.now.windDirection != "—")
@@ -119,24 +133,30 @@ fun CurrentWeatherPreview(
                     style = TextStyle(
                         color = Color.White,
                         fontSize = 11.sp
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Row{
+            Row {
                 Text(
                     text = "Давление: ",
                     style = TextStyle(
                         color = Color.LightGray,
                         fontSize = 11.sp
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "${weatherInfo.now.pressure} мм рт. ст.",
                     style = TextStyle(
                         color = Color.White,
                         fontSize = 11.sp
-                    )
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

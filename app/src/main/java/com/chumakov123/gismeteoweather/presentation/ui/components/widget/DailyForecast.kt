@@ -16,12 +16,11 @@ import kotlinx.datetime.DayOfWeek
 fun DailyForecast(
     weatherInfo: WeatherInfo.Available,
     appearance: WidgetAppearance,
+    forecastColumns: Int,
     modifier: GlanceModifier = GlanceModifier
 ) {
-    val visibleCount = 6
-
     val displayList = weatherInfo.daily
-        .take(visibleCount)
+        .take(forecastColumns)
 
     Row(
         modifier = modifier.fillMaxWidth(),

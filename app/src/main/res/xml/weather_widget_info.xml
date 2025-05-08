@@ -6,9 +6,16 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="300dp"
     android:minHeight="100dp"
+
+    android:resizeMode="horizontal|vertical"
+    android:minResizeWidth="50dp"
+    android:minResizeHeight="50dp"
+
+
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/glance_default_loading_layout"
     android:widgetCategory="home_screen"
     android:configure="com.chumakov123.gismeteoweather.WeatherWidgetConfigureActivity"/>
 
+    <!--    android:maxResizeHeight="240dp"-->
     <!--    android:resizeMode="horizontal|vertical"-->

@@ -33,7 +33,8 @@ fun WidgetHeader(
     placeName: String,
     updateTimeText: String?,
     isLoading: Boolean,
-    modifier: GlanceModifier = GlanceModifier
+    forecastColumns: Int,
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     Row(
         modifier = modifier
@@ -42,17 +43,22 @@ fun WidgetHeader(
             .padding(start = 8.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = buildString {
-                updateTimeText?.let { append("$it, ") }
-                append(placeName)
-            },
-            style = TextStyle(
-                color = ColorProvider(Color.White),
-                fontSize = 12.sp
-            ),
-            modifier = GlanceModifier.defaultWeight()
-        )
+        if (forecastColumns > 1) {
+            Text(
+                text = buildString {
+                    updateTimeText?.let { append("$it, ") }
+                    if (forecastColumns >= 3) {
+                        append(placeName)
+                    }
+                },
+                style = TextStyle(
+                    color = ColorProvider(Color.White),
+                    fontSize = 12.sp
+                ),
+                modifier = GlanceModifier.defaultWeight(),
+                maxLines = 1,
+            )
+        }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -68,18 +74,20 @@ fun WidgetHeader(
                     modifier = GlanceModifier.size(12.dp)
                 )
             }
-            Box(
-                modifier = GlanceModifier
-                    .height(12.dp)
-                    .width(24.dp)
-                    .clickable(actionRunCallback<SwitchForecastModeAction>()),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    provider = ImageProvider(R.drawable.ic_calendar),
-                    contentDescription = "Переключить режим",
-                    modifier = GlanceModifier.size(12.dp)
-                )
+            if (forecastColumns > 1) {
+                Box(
+                    modifier = GlanceModifier
+                        .height(12.dp)
+                        .width(24.dp)
+                        .clickable(actionRunCallback<SwitchForecastModeAction>()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_calendar),
+                        contentDescription = "Переключить режим",
+                        modifier = GlanceModifier.size(12.dp)
+                    )
+                }
             }
             if (!isLoading) {
                 Box(

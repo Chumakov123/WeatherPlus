@@ -13,14 +13,14 @@ import com.chumakov123.gismeteoweather.domain.util.Utils
 fun HourlyForecast(
     weatherInfo: WeatherInfo.Available,
     appearance: WidgetAppearance,
+    forecastColumns: Int,
     modifier: GlanceModifier = GlanceModifier
 ) {
     val startIndex = Utils.getIntervalIndexByHour(weatherInfo.localTime.hour)
-    val visibleCount = 6
 
     val displayList = weatherInfo.hourly
         .drop(startIndex)
-        .take(visibleCount)
+        .take(forecastColumns)
 
     Row(
         modifier = modifier.fillMaxWidth(),

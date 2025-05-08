@@ -1,7 +1,6 @@
 package com.chumakov123.gismeteoweather.presentation.ui.components.preview
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chumakov123.gismeteoweather.R
@@ -48,8 +48,12 @@ fun WidgetHeaderPreview(
                 color = Color.White,
                 platformStyle = PlatformTextStyle(includeFontPadding = false)
             ),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_settings),
