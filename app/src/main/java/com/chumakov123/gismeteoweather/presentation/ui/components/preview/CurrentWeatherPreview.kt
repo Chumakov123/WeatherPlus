@@ -49,20 +49,6 @@ fun CurrentWeatherPreview(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (weatherInfo.now.temperatureMin != null) {
-                    Row {
-                        Text(
-                            text = "${weatherInfo.now.temperatureMin}°",
-                            style = TextStyle(
-                                color = Color.LightGray,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
                 WeatherIconPreview(weatherInfo)
             }
             Text(

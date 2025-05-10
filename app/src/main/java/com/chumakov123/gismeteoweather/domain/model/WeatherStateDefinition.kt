@@ -62,7 +62,6 @@ data class WidgetState(
     val weatherInfo: WeatherInfo = WeatherInfo.Unavailable("Нет данных"),
     val appearance: WidgetAppearance = WidgetAppearance(),
     val lastAvailable: WeatherInfo.Available? = null,
-
     val forecastColumns: Int = 6,
     val forecastRows: Int = 2
 )

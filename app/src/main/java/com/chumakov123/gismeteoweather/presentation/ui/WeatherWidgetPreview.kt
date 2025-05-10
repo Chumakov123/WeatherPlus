@@ -2,10 +2,8 @@ package com.chumakov123.gismeteoweather.presentation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -66,14 +64,7 @@ fun WeatherWidgetPreview(weatherInfo: WeatherInfo.Available, appearance: WidgetA
 
 @Composable
 fun WidgetPreviewContainer(transparencyPercent: Int = 50, previewSizeDp: DpSize, content: @Composable ColumnScope.() -> Unit) {
-    val cellWidth = 74.dp
-    val cellHeight = 74.dp
-
-    val widgetWidth = cellWidth * 5
-    val widgetHeight = cellHeight * 3
-
     val shape = RoundedCornerShape(8.dp)
-
     Column(
         modifier = Modifier
             .size(previewSizeDp)

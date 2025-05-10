@@ -43,6 +43,7 @@ android {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    implementation("io.coil-kt:coil-compose:2.5.0")
     implementation ("org.jsoup:jsoup:1.19.1")
     implementation("org.json:json:20250107")
     implementation(libs.androidx.core.ktx)

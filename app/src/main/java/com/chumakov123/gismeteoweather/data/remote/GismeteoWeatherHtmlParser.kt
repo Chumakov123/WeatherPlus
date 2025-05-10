@@ -3,34 +3,34 @@ package com.chumakov123.gismeteoweather.data.remote
 import com.chumakov123.gismeteoweather.R
 import com.chumakov123.gismeteoweather.data.dto.DateAndCityDTO
 import com.chumakov123.gismeteoweather.data.dto.WeatherRawDTO
-import com.chumakov123.gismeteoweather.domain.util.Utils.fahrenheitToCelsius
-import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
+import com.chumakov123.gismeteoweather.domain.model.AstroTimes
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
 import com.chumakov123.gismeteoweather.domain.model.WeatherIconInfo
 import com.chumakov123.gismeteoweather.domain.model.WindData
+import com.chumakov123.gismeteoweather.domain.util.Utils.fahrenheitToCelsius
 import com.chumakov123.gismeteoweather.domain.util.Utils.normalizeIconString
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
-import java.time.format.DateTimeFormatter
 
 object GismeteoWeatherHtmlParser {
-    fun parseWeatherData(html: String, hasMinT: Boolean = false): List<WeatherData> {
-        val temperatures = parseTemperatureData(html)
-        val windDataList = parseWindData(html)
-        val precipitations = parsePrecipitationData(html)
-        val icons = parseWeatherIcons(html)
-        val pressures = parsePressureData(html)
+    fun parseWeatherData(doc: Document, hasMinT: Boolean = false): List<WeatherData> {
+        val temperatures = parseTemperatureData(doc)
+        val windDataList = parseWindData(doc)
+        val precipitations = parsePrecipitationData(doc)
+        val icons = parseWeatherIcons(doc)
+        val pressures = parsePressureData(doc)
 
         val weatherDataList = mutableListOf<WeatherData>()
 
@@ -71,9 +71,34 @@ object GismeteoWeatherHtmlParser {
 
         return weatherDataList
     }
-    fun parseWeatherNowFromHtml(html: String): WeatherRawDTO? {
+
+    fun parseAstroTimes(doc: Document): AstroTimes? {
+        val sunriseText = doc.selectFirst(".now-astro-sunrise .time")?.text()
+        val sunsetText  = doc.selectFirst(".now-astro-sunset .time")?.text()
+
+        if (sunriseText == null || sunsetText == null) return null
+
+        val sunriseParts = sunriseText.split(":")
+        val sunsetParts  = sunsetText.split(":")
+
+        if (sunriseParts.size != 2 || sunsetParts.size != 2) return null
+
+        val sunrise = LocalTime(
+            sunriseParts[0].toIntOrNull() ?: return null,
+            sunriseParts[1].toIntOrNull() ?: return null
+        )
+
+        val sunset = LocalTime(
+            sunsetParts[0].toIntOrNull() ?: return null,
+            sunsetParts[1].toIntOrNull() ?: return null
+        )
+
+        return AstroTimes(sunset = sunset, sunrise = sunrise)
+    }
+
+    fun parseWeatherNowFromHtml(doc: Document): WeatherRawDTO? {
         val regex = Regex("""window\.M\.state\s*=\s*(\{.*?\})(?=\s*</script>)""", RegexOption.DOT_MATCHES_ALL)
-        val matchResult = regex.find(html) ?: return null
+        val matchResult = regex.find(doc.outerHtml()) ?: return null
         val jsonString = matchResult.groupValues[1]
         val json = Json { ignoreUnknownKeys = true }
         val root = json.parseToJsonElement(jsonString).jsonObject
@@ -81,20 +106,37 @@ object GismeteoWeatherHtmlParser {
         return json.decodeFromJsonElement<WeatherRawDTO>(cwJson)
     }
 
-    fun parseDateAndCityFromHtml(html: String): DateAndCityDTO? {
+    fun parseDateAndCityFromHtml(doc: Document): DateAndCityDTO? {
+        val tsRegex = Regex(
+            """window\.M\.state\.app\.timestamps\s*=\s*\{[^}]*?now\s*:\s*new Date\(\s*'([^']+)'\s*\)""",
+            RegexOption.DOT_MATCHES_ALL
+        )
+        val outerHtml = doc.outerHtml()
+        val tsMatch = tsRegex.find(outerHtml) ?: return null
+        val rawDate = tsMatch.groupValues[1]  // "2025/04/10 08:04:18"
+
+        // Разбиваем на дату и время
+        val (datePart, timePart) = rawDate.split(' ')
+        val (yearStr, monthStr, dayStr) = datePart.split('/')
+        val (hourStr, minuteStr, secondStr) = timePart.split(':')
+
+        val dateTime = LocalDateTime(
+            year        = yearStr.toInt(),
+            monthNumber = monthStr.toInt(),
+            dayOfMonth  = dayStr.toInt(),
+            hour        = hourStr.toInt(),
+            minute      = minuteStr.toInt(),
+            second      = secondStr.toInt(),
+            nanosecond  = 0
+        )
+
         // Извлекаем JSON из HTML
         val regex = Regex("""window\.M\.state\s*=\s*(\{.*?\})(?=\s*</script>)""", RegexOption.DOT_MATCHES_ALL)
-        val matchResult = regex.find(html) ?: return null
+        val matchResult = regex.find(outerHtml) ?: return null
         val jsonString = matchResult.groupValues[1]
 
         val json = Json { ignoreUnknownKeys = true }
         val root = json.parseToJsonElement(jsonString).jsonObject
-
-        // Извлекаем строку даты из app.cache.date
-        val cacheDate = root["app"]?.jsonObject
-            ?.get("cache")?.jsonObject
-            ?.get("date")?.jsonPrimitive?.content
-            ?: return null
 
         // Извлекаем смещение в минутах из city.timeZone
         val timeZoneOffsetMinutes = root["city"]?.jsonObject
@@ -108,26 +150,8 @@ object GismeteoWeatherHtmlParser {
             ?.get("name")?.jsonPrimitive?.content
             ?: return null
 
-        // Обрезаем дату (например, "10.04.2025 08:03:37 (UTC)" -> "10.04.2025 08:03:37")
-        val dateTimeString = cacheDate.substringBefore(" (")
-
-        // Парсим строку с помощью java.time
-        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")
-        val javaUtcDateTime = java.time.LocalDateTime.parse(dateTimeString, formatter)
-
-        // Конвертируем java.time.LocalDateTime в kotlinx.datetime.LocalDateTime
-        val utcDateTime = LocalDateTime(
-            year = javaUtcDateTime.year,
-            monthNumber = javaUtcDateTime.monthValue,
-            dayOfMonth = javaUtcDateTime.dayOfMonth,
-            hour = javaUtcDateTime.hour,
-            minute = javaUtcDateTime.minute,
-            second = javaUtcDateTime.second,
-            nanosecond = javaUtcDateTime.nano
-        )
-
         // Преобразуем UTC LocalDateTime в Instant
-        val utcInstant = utcDateTime.toInstant(TimeZone.UTC)
+        val utcInstant = dateTime.toInstant(TimeZone.UTC)
         // Прибавляем смещение в минутах к Instant
         val localInstant = utcInstant.plus(timeZoneOffsetMinutes.toLong(), DateTimeUnit.MINUTE)
         // Преобразуем обратно в LocalDateTime (можно указать TimeZone.UTC, т.к. смещение уже учтено)
@@ -136,8 +160,7 @@ object GismeteoWeatherHtmlParser {
         return DateAndCityDTO(localDateTime, cityName)
     }
 
-    private fun parseWeatherIcons(html: String): List<WeatherIconInfo> {
-        val doc: Document = Jsoup.parse(html)
+    private fun parseWeatherIcons(doc: Document): List<WeatherIconInfo> {
         val result = mutableListOf<WeatherIconInfo>()
 
         val items = doc.select(".widget-row-icon .row-item")
@@ -160,10 +183,9 @@ object GismeteoWeatherHtmlParser {
         return result
     }
 
-    private fun parseTemperatureData(html: String): List<Double> {
-        val document = Jsoup.parse(html)
+    private fun parseTemperatureData(doc: Document): List<Double> {
         val temperatures = mutableListOf<Double>()
-        val temperatureSection = document.select(".widget-row-chart.widget-row-chart-temperature-air")
+        val temperatureSection = doc.select(".widget-row-chart.widget-row-chart-temperature-air")
         val temperatureElements = temperatureSection.select("temperature-value")
         for (element in temperatureElements) {
             val temperatureValue = element.attr("value").toDoubleOrNull() ?: continue
@@ -179,11 +201,10 @@ object GismeteoWeatherHtmlParser {
         return temperatures
     }
 
-    private fun parsePressureData(html: String): List<Int> {
-        val document = Jsoup.parse(html)
+    private fun parsePressureData(doc: Document): List<Int> {
         val pressures = mutableListOf<Int>()
 
-        val pressureSection = document.select(".widget-row-chart.widget-row-chart-pressure")
+        val pressureSection = doc.select(".widget-row-chart.widget-row-chart-pressure")
 
         val pressureElements = pressureSection.select("pressure-value")
 
@@ -200,10 +221,9 @@ object GismeteoWeatherHtmlParser {
         return pressures
     }
 
-    private fun parsePrecipitationData(html: String): List<Double> {
-        val document = Jsoup.parse(html) // Парсим HTML
+    private fun parsePrecipitationData(doc: Document): List<Double> {
         val precipitations = mutableListOf<Double>()
-        val precipitationSection = document.select(".widget-row-precipitation-bars")
+        val precipitationSection = doc.select(".widget-row-precipitation-bars")
         val precipitationElements = precipitationSection.select(".item-unit")
         for (element in precipitationElements) {
             val precipitationText = element.text().trim().replace(",", ".")
@@ -215,11 +235,10 @@ object GismeteoWeatherHtmlParser {
 
         return precipitations
     }
-    private fun parseWindData(html: String): List<WindData> {
-        val document: Document = Jsoup.parse(html) // Парсим HTML
+    private fun parseWindData(doc: Document): List<WindData> {
         val windDataList = mutableListOf<WindData>()
 
-        val windRows = document.select(".widget-row-wind .row-item")
+        val windRows = doc.select(".widget-row-wind .row-item")
 
         for (row in windRows) {
             val windSpeedElement = row.select(".wind-speed").first() // Скорость ветра

@@ -72,18 +72,6 @@ fun CurrentWeather(
                         ),
                         maxLines = 1
                     )
-                    if (weatherInfo.now.temperatureMin != null) {
-                        Spacer(modifier = GlanceModifier.width(4.dp))
-                        Text(
-                            text = "${weatherInfo.now.temperatureMin}°",
-                            style = TextStyle(
-                                color = ColorProvider(Color.LightGray),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            maxLines = 1
-                        )
-                    }
                     WeatherIcon(weatherInfo)
                 }
             }
@@ -155,7 +143,7 @@ fun CurrentWeather(
                             else
                                 "${weatherInfo.now.windSpeed} м/c, ${weatherInfo.now.windDirection}"
                         else
-                            "Нет",
+                            "—",
                         style = TextStyle(
                             color = ColorProvider(Color.White),
                             fontSize = 11.sp
