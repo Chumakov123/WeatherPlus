@@ -11,7 +11,6 @@ import androidx.glance.appwidget.updateAll
 import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherStateDefinition
-import com.chumakov123.gismeteoweather.domain.model.WidgetState
 import com.chumakov123.gismeteoweather.presentation.ui.WeatherGlanceWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

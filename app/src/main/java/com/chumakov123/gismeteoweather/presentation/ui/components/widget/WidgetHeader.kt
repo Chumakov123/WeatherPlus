@@ -23,7 +23,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.chumakov123.gismeteoweather.R
-import com.chumakov123.gismeteoweather.domain.util.Utils
 import com.chumakov123.gismeteoweather.presentation.ui.OpenConfigCallback
 import com.chumakov123.gismeteoweather.presentation.ui.SwitchForecastModeAction
 import com.chumakov123.gismeteoweather.presentation.ui.UpdateWeatherAction

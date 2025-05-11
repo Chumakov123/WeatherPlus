@@ -1,4 +1,4 @@
-package com.chumakov123.gismeteoweather.presentation.ui.components.application.viewModel
+package com.chumakov123.gismeteoweather.presentation.ui.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
