@@ -6,8 +6,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -30,7 +36,9 @@ import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewMode
 @Composable
 fun WeatherMainScreen(
     viewModel: WeatherViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSettingsClick: () -> Unit,
+    onAddCityClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -48,7 +56,7 @@ fun WeatherMainScreen(
             WeatherContent(
                 weather = data,
                 onRefresh = { viewModel.loadWeather(data.placeCode) },
-                modifier = modifier
+                modifier = modifier,
             )
 
             SlideUpPanelContinuous(
@@ -80,6 +88,27 @@ fun WeatherMainScreen(
                     }
                 }
             )
+            Box(Modifier.fillMaxSize()) {
+                IconButton(
+                    onClick = onAddCityClick,
+                    modifier = modifier.align(Alignment.TopStart).padding(horizontal = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                    )
+                }
+                IconButton(
+                    onClick = onSettingsClick,
+                    modifier = modifier.align(Alignment.TopEnd).padding(horizontal = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = null
+                    )
+                }
+            }
+
         }
         is WeatherUiState.Error -> {
             val msg = (state as WeatherUiState.Error).message
