@@ -23,26 +23,47 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jsoup.nodes.Document
+import kotlin.math.roundToInt
 
 object GismeteoWeatherHtmlParser {
-    fun parseWeatherData(doc: Document, hasMinT: Boolean = false): List<WeatherData> {
-        val temperatures = parseTemperatureData(doc)
+    fun parseWeatherData(doc: Document, hasMinValues: Boolean = false): List<WeatherData> {
+        val temperatureList = parseTemperatureData(doc)
+        val temperatureHeatIndexList = parseHeatIndexData(doc)
+        val temperatureAvgList = parseTemperatureAvgData(doc)
         val windDataList = parseWindData(doc)
-        val precipitations = parsePrecipitationData(doc)
-        val icons = parseWeatherIcons(doc)
-        val pressures = parsePressureData(doc)
+        val precipitationList = parsePrecipitationData(doc)
+        val iconList = parseWeatherIcons(doc)
+        val pressureList = parsePressureData(doc)
+        val geomagneticList = parseGeomagneticData(doc)
+        val radiationList = parseRadiationData(doc)
+        val humidityList = parseHumidityData(doc)
+        val pollenGrassList = parsePollenGrassData(doc)
+        val pollenBirchList = parsePollenBirchData(doc)
+        val snowHeightList = parseSnowHeightData(doc)
+        val fallingSnowList = parseFallingSnowData(doc)
 
         val weatherDataList = mutableListOf<WeatherData>()
 
-        val size = if (!hasMinT) temperatures.size else temperatures.size / 2
+        val size = if (!hasMinValues) temperatureList.size else temperatureList.size / 2
 
         for (i in 0 until size) {
-            val tMax = if (!hasMinT) temperatures[i] else temperatures[i*2]
-            val tMin = if (!hasMinT) null else temperatures[i*2+1]
+            val tMax = if (!hasMinValues) temperatureList[i] else temperatureList[i*2]
+            val tMin = if (!hasMinValues) null else temperatureList[i*2+1]
+            val tAvg = temperatureAvgList.getOrElse(i) { 0 }
+            val tHeatIndex = if (!hasMinValues) temperatureHeatIndexList[i] else temperatureHeatIndexList[i*2]
+            val tHeatIndexMin = if (!hasMinValues) null else temperatureHeatIndexList[i*2+1]
             val windData = windDataList.getOrElse(i) { WindData(0, "Неизвестно", 0) }
-            val precipitation = precipitations.getOrElse(i) { 0.0 }
-            val pressure = pressures.getOrElse(i) { 0 }
-            val icon = icons.getOrElse(i) { WeatherIconInfo("Неизвестно", null, null) }
+            val precipitation = precipitationList.getOrElse(i) { 0.0 }
+            val humidity = humidityList.getOrElse(i) { -1 }
+            val geomagnetic = geomagneticList.getOrElse(i) { -1 }
+            val radiation = radiationList.getOrElse(i) { -1 }
+            val pollenBirch = pollenBirchList.getOrElse(i) { -1 }
+            val pollenGrass = pollenGrassList.getOrElse(i) { -1 }
+            val snowHeight = snowHeightList.getOrElse(i) { -1.0 }
+            val fallingSnow = fallingSnowList.getOrElse(i) { -1.0 }
+            val pressure = if (!hasMinValues) pressureList[i] else pressureList[i*2]
+            val pressureMin = if (!hasMinValues) null else pressureList[i*2+1]
+            val icon = iconList.getOrElse(i) { WeatherIconInfo("Неизвестно", null, null) }
 
             var iconString =
                 if (icon.bottomLayer != null)
@@ -59,11 +80,22 @@ object GismeteoWeatherHtmlParser {
                 icon = iconDrawable,
                 temperature = tMax.toInt(),
                 temperatureMin = tMin?.toInt(),
+                temperatureAvg = tAvg,
+                temperatureHeatIndex = tHeatIndex,
+                temperatureHeatIndexMin = tHeatIndexMin,
                 windSpeed = windData.speed,
                 windDirection = windData.direction,
                 windGust = windData.gust,
                 precipitation = precipitation,
-                pressure = pressure
+                pressure = pressure,
+                pressureMin = pressureMin,
+                humidity = humidity,
+                radiation = radiation,
+                geomagnetic = geomagnetic,
+                pollenGrass = pollenGrass,
+                pollenBirch = pollenBirch,
+                snowHeight = snowHeight,
+                fallingSnow = fallingSnow,
             )
 
             weatherDataList.add(weatherData)
@@ -185,36 +217,290 @@ object GismeteoWeatherHtmlParser {
 
     private fun parseTemperatureData(doc: Document): List<Double> {
         val temperatures = mutableListOf<Double>()
-        val temperatureSection = doc.select(".widget-row-chart.widget-row-chart-temperature-air")
-        val temperatureElements = temperatureSection.select("temperature-value")
-        for (element in temperatureElements) {
-            val temperatureValue = element.attr("value").toDoubleOrNull() ?: continue
-            val fromUnit = element.attr("from-unit")
-            if (fromUnit == "f") {
-                val celsius = fahrenheitToCelsius(temperatureValue)
+        val section = doc.selectFirst(".widget-row-chart.widget-row-chart-temperature-air")
+            ?: return temperatures
+
+        val hasMaxElements = section.selectFirst(".maxt temperature-value") != null
+
+        if (hasMaxElements) {
+            val valueContainers = section.select(".values .value")
+            for (vc in valueContainers) {
+                val maxElem = vc.selectFirst(".maxt temperature-value")
+                val rawMax = maxElem
+                    ?.attr("value")
+                    ?.toDoubleOrNull()
+                    ?: continue
+                val unitMax = maxElem.attr("from-unit")
+
+                val minElem = vc.selectFirst(".mint temperature-value")
+                val rawMin = minElem
+                    ?.attr("value")
+                    ?.toDoubleOrNull()
+                    ?: rawMax
+                val unitMin = minElem?.attr("from-unit") ?: unitMax
+
+                val maxC = if (unitMax == "f") fahrenheitToCelsius(rawMax) else rawMax
+                val minC = if (unitMin == "f") fahrenheitToCelsius(rawMin) else rawMin
+
+                temperatures.add(maxC)
+                temperatures.add(minC)
+            }
+        } else {
+            val elems = section.select("temperature-value")
+            for (el in elems) {
+                val raw = el.attr("value").toDoubleOrNull() ?: continue
+                val unit = el.attr("from-unit")
+                val celsius = if (unit == "f") fahrenheitToCelsius(raw) else raw
                 temperatures.add(celsius)
-            } else {
-                temperatures.add(temperatureValue)
             }
         }
 
         return temperatures
     }
 
+    private fun parseHeatIndexData(doc: Document): List<Int> {
+        val heatIndices = mutableListOf<Int>()
+        // Секция с индексом жары
+        val section = doc.selectFirst(
+            ".widget-row-chart" +
+                    ".widget-row-chart-temperature-heat-index" +
+                    ".row-with-caption"
+        ) ?: return heatIndices
+
+        val hasMaxElements = section.selectFirst(".maxt temperature-value") != null
+
+        if (hasMaxElements) {
+            val valueContainers = section.select(".values .value")
+            for (vc in valueContainers) {
+                val maxElem = vc.selectFirst(".maxt temperature-value")
+                val rawMax = maxElem
+                    ?.attr("value")
+                    ?.toIntOrNull()
+                    ?: continue
+                val unitMax = maxElem.attr("from-unit")
+
+                val minElem = vc.selectFirst(".mint temperature-value")
+                val rawMin = minElem
+                    ?.attr("value")
+                    ?.toIntOrNull()
+                    ?: rawMax
+                val unitMin = minElem?.attr("from-unit") ?: unitMax
+
+                val maxC = if (unitMax == "f") fahrenheitToCelsius(rawMax.toDouble()).roundToInt() else rawMax
+                val minC = if (unitMin == "f") fahrenheitToCelsius(rawMin.toDouble()).roundToInt() else rawMin
+
+                heatIndices.add(maxC)
+                heatIndices.add(minC)
+            }
+        } else {
+            val elems = section.select("temperature-value")
+            for (el in elems) {
+                val raw = el.attr("value").toIntOrNull() ?: continue
+                val unit = el.attr("from-unit")
+                val celsiusIndex = if (unit == "f") {
+                    fahrenheitToCelsius(raw.toDouble()).roundToInt()
+                } else {
+                    raw
+                }
+                heatIndices.add(celsiusIndex)
+            }
+        }
+
+        return heatIndices
+    }
+
+    private fun parseTemperatureAvgData(doc: Document): List<Int> {
+        val avgTemperatures = mutableListOf<Int>()
+
+        val avgTempSection = doc.select(
+            ".widget-row-chart" +
+                    ".widget-row-chart-temperature-avg" +
+                    ".row-with-caption"
+        )
+
+        val avgTempElements = avgTempSection.select("temperature-value")
+
+        for (element in avgTempElements) {
+            val rawValue = element.attr("value").toDoubleOrNull() ?: continue
+            val fromUnit = element.attr("from-unit")
+
+            val celsiusValue = if (fromUnit == "f") {
+                fahrenheitToCelsius(rawValue)
+            } else {
+                rawValue
+            }
+
+            avgTemperatures.add(celsiusValue.roundToInt())
+        }
+
+        return avgTemperatures
+    }
+
+    private fun parseGeomagneticData(doc: Document): List<Int> {
+        val geomagneticValues = mutableListOf<Int>()
+        val geomagneticSection = doc.select(
+            ".widget-row" +
+                    ".widget-row-geomagnetic" +
+                    ".row-with-caption"
+        )
+        val geomagneticElements = geomagneticSection.select("div.row-item")
+
+        for (element in geomagneticElements) {
+            element.text()
+                .trim()
+                .toIntOrNull()
+                ?.let { geomagneticValues.add(it) }
+        }
+
+        return geomagneticValues
+    }
+
+    private fun parseRadiationData(doc: Document): List<Int> {
+        val radiationValues = mutableListOf<Int>()
+        val radiationSection = doc.select(
+            ".widget-row" +
+                    ".widget-row-radiation" +
+                    ".row-with-caption"
+        )
+        val radiationElements = radiationSection.select("div.row-item")
+
+        for (element in radiationElements) {
+            element.text()
+                .trim()
+                .toIntOrNull()
+                ?.let { radiationValues.add(it) }
+        }
+
+        return radiationValues
+    }
+
+    private fun parseHumidityData(doc: Document): List<Int> {
+        val humidities = mutableListOf<Int>()
+        val humiditySection = doc.select(".widget-row.widget-row-humidity.row-with-caption")
+        val humidityElements = humiditySection.select("div.row-item")
+        for (element in humidityElements) {
+            element.text()
+                .trim()
+                .toIntOrNull()
+                ?.let { humidities.add(it) }
+        }
+
+        return humidities
+    }
+
+    private fun parsePollenGrassData(doc: Document): List<Int> {
+        val pollenValues = mutableListOf<Int>()
+        val pollenSection = doc.select(
+            ".widget-row" +
+                    ".widget-row-pollen" +
+                    ".row-pollen-grass" +
+                    ".row-with-caption"
+        )
+        val pollenElements = pollenSection.select("div.row-item")
+
+        for (element in pollenElements) {
+            val isNoData = element.selectFirst(".nodata") != null
+
+            if (isNoData) {
+                pollenValues.add(-1)
+            } else {
+                val value = element.text().trim().toIntOrNull() ?: -1
+                pollenValues.add(value)
+            }
+        }
+
+        return pollenValues
+    }
+
+    private fun parsePollenBirchData(doc: Document): List<Int> {
+        val pollenValues = mutableListOf<Int>()
+        val birchSection = doc.select(
+            ".widget-row" +
+                    ".widget-row-pollen" +
+                    ".row-pollen-birch" +
+                    ".row-with-caption"
+        )
+        val pollenElements = birchSection.select("div.row-item")
+
+        for (element in pollenElements) {
+            val itemElement = element.selectFirst("div.item")
+
+            val value = itemElement?.text()?.trim()?.toIntOrNull() ?: -1
+            pollenValues.add(value)
+        }
+
+        return pollenValues
+    }
+
+    private fun parseSnowHeightData(doc: Document): List<Double> {
+        val snowHeights = mutableListOf<Double>()
+        val snowSection = doc.select(
+            ".widget-row" +
+                    ".widget-row-icon-snow" +
+                    ".row-with-caption"
+        )
+        val snowElements = snowSection.select("div.row-item")
+
+        for (element in snowElements) {
+            val valueElement = element.selectFirst("div.value")
+            val textValue = valueElement?.text()?.replace(",", ".")?.trim()
+            val parsedValue = textValue?.toDoubleOrNull() ?: 0.0
+            snowHeights.add(parsedValue)
+        }
+
+        return snowHeights
+    }
+
+    private fun parseFallingSnowData(doc: Document): List<Double> {
+        val res = mutableListOf<Double>()
+        val chartElement = doc.selectFirst(".chart.chart-snow.js-chart-snow")
+
+        val dataSnow = chartElement?.attr("data-snow") ?: return res
+        val values = dataSnow
+            .removePrefix("[")
+            .removeSuffix("]")
+            .split(",")
+        for (value in values) {
+            val snowValue = value.trim().toDoubleOrNull() ?: continue
+            res.add(snowValue)
+        }
+        return res
+    }
+
+
     private fun parsePressureData(doc: Document): List<Int> {
         val pressures = mutableListOf<Int>()
 
-        val pressureSection = doc.select(".widget-row-chart.widget-row-chart-pressure")
+        val section = doc.selectFirst(".widget-row-chart.widget-row-chart-pressure")
+            ?: return pressures
 
-        val pressureElements = pressureSection.select("pressure-value")
+        val hasMaxElements = section.selectFirst(".maxt pressure-value") != null
 
-        for (element in pressureElements) {
-            val pressureValue = element.attr("value").toIntOrNull() ?: continue
-            val fromUnit = element.attr("from-unit")
-            if (fromUnit == "mmhg") {
-                pressures.add(pressureValue)
-            } else {
-                pressures.add(pressureValue) // временно оставляем как есть
+        if (hasMaxElements) {
+            val valueContainers = section.select(".values .value")
+
+            for (vc in valueContainers) {
+                val maxVal = vc
+                    .selectFirst(".maxt pressure-value")
+                    ?.attr("value")
+                    ?.toIntOrNull()
+                    ?: continue
+
+                val minVal = vc
+                    .selectFirst(".mint pressure-value")
+                    ?.attr("value")
+                    ?.toIntOrNull()
+                    ?: maxVal
+
+                pressures.add(maxVal)
+                pressures.add(minVal)
+            }
+        } else {
+            val elems = section.select("pressure-value")
+            for (el in elems) {
+                el.attr("value")
+                    .toIntOrNull()
+                    ?.let { pressures.add(it) }
             }
         }
 

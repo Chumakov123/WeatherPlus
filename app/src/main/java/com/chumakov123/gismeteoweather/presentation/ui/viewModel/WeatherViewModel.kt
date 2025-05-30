@@ -25,7 +25,7 @@ class WeatherViewModel(
     private var lastAvailable: WeatherInfo.Available? = null
 
     init {
-        loadWeather("auto")
+        loadWeather("krasnodar-5136") //TODO выбор города (или auto)
     }
 
     fun loadWeather(cityCode: String) {

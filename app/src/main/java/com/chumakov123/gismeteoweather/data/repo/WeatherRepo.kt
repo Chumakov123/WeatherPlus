@@ -1,27 +1,81 @@
 package com.chumakov123.gismeteoweather.data.repo
 
+import androidx.datastore.core.DataStore
+import com.chumakov123.gismeteoweather.WeatherCacheOuterClass
 import com.chumakov123.gismeteoweather.data.dto.toCurrentWeatherData
 import com.chumakov123.gismeteoweather.data.dto.toWeatherDTO
 import com.chumakov123.gismeteoweather.data.remote.GismeteoApi
 import com.chumakov123.gismeteoweather.data.remote.GismeteoHtmlFetcher
 import com.chumakov123.gismeteoweather.data.remote.GismeteoWeatherHtmlParser
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import com.google.protobuf.ByteString
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 object WeatherRepo {
     private val cache = mutableMapOf<String, Cached<WeatherInfo>>()
     private const val TTL_MS = 5 * 60 * 1000L
 
+    private lateinit var dataStore: DataStore<WeatherCacheOuterClass.WeatherCache>
+    private val json = Json { encodeDefaults = true }
+
+    fun init(dataStore: DataStore<WeatherCacheOuterClass.WeatherCache>) {
+        this.dataStore = dataStore
+    }
+
     suspend fun getWeatherInfo(cityCode: String): WeatherInfo {
         val now = System.currentTimeMillis()
+
+        // 1. Проверка in-memory кэша
         cache[cityCode]?.let { (info, ts) ->
-            if (now - ts < TTL_MS) {
-                return info
+            if (now - ts < TTL_MS) return info
+        }
+
+        // 2. Проверка DataStore
+        val dsEntry = dataStore.data
+            .map { it.entriesList.find { it.cityCode == cityCode } }
+            .firstOrNull()
+
+        if (dsEntry != null && now - dsEntry.timestamp < TTL_MS) {
+            runCatching {
+                val avail = json.decodeFromString<WeatherInfo.Available>(
+                    dsEntry.payload.toByteArray().decodeToString()
+                )
+                cache[cityCode] = Cached(avail, dsEntry.timestamp)
+                return avail
+            }.onFailure {
+                // Если не удалось декодировать — идём дальше
             }
         }
 
+        // 3. Запрос с сервера
         val fresh = fetchFromGismeteo(cityCode)
         cache[cityCode] = Cached(fresh, now)
+
+        if (fresh is WeatherInfo.Available) {
+            saveToDataStore(cityCode, fresh, now)
+        }
+
         return fresh
+    }
+
+    private suspend fun saveToDataStore(cityCode: String, info: WeatherInfo.Available, timestamp: Long) {
+        val payload = json.encodeToString(info).encodeToByteArray()
+        dataStore.updateData { cache ->
+            val builder = cache.toBuilder().clearEntries()
+            builder.addAllEntries(
+                cache.entriesList.filter { it.cityCode != cityCode }
+            )
+            builder.addEntries(
+                WeatherCacheOuterClass.WeatherCache.Entry.newBuilder()
+                    .setCityCode(cityCode)
+                    .setPayload(ByteString.copyFrom(payload))
+                    .setTimestamp(timestamp)
+                    .build()
+            )
+            builder.build()
+        }
     }
 
     private suspend fun resolveCityCodeOrFallback(
@@ -51,7 +105,7 @@ object WeatherRepo {
         val nowWeather = now?.toCurrentWeatherData()
         val hourly = GismeteoWeatherHtmlParser.parseWeatherData(todayHtml) +
                 GismeteoWeatherHtmlParser.parseWeatherData(tomorrowHtml)
-        val teenDays = GismeteoWeatherHtmlParser.parseWeatherData(teenDaysHtml, hasMinT = true)
+        val teenDays = GismeteoWeatherHtmlParser.parseWeatherData(teenDaysHtml, hasMinValues = true)
         val astroTimes = GismeteoWeatherHtmlParser.parseAstroTimes(nowHtml)
         val dateAndCity = GismeteoWeatherHtmlParser.parseDateAndCityFromHtml(todayHtml)
 

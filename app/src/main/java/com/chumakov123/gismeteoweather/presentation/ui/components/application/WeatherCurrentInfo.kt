@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,7 +38,7 @@ fun WeatherCurrentInfo(
 ) {
     Column(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(8.dp),
         horizontalAlignment   = Alignment.CenterHorizontally,
         verticalArrangement   = Arrangement.Top
@@ -67,16 +68,12 @@ fun WeatherCurrentInfo(
             astroTimes  = astroTimes,
             shadowStyle = shadowStyle
         )
-
-        Spacer(Modifier.height(8.dp))
-
         val sign = if (temperature >= 0) "+" else "-"
         Text(
             text  = "$sign$temperature°",
             color = Color.White,
             style = MaterialTheme.typography.displayLarge.copy(shadow = shadowStyle)
         )
-        Spacer(Modifier.height(8.dp))
 
         val heatSign = if (heatIndex >= 0) "+" else "-"
         Box(
@@ -103,7 +100,5 @@ fun WeatherCurrentInfo(
         Spacer(Modifier.height(8.dp))
 
         WeatherParamsRow(weather = weather)
-
-        Spacer(Modifier.weight(1f))
     }
 }

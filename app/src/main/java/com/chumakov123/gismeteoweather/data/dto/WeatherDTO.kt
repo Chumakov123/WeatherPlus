@@ -25,7 +25,7 @@ data class WeatherDTO(
     val temperatureWater: Int,
     val windDirection: Int,
     val windGust: Int,
-    val windSpeed: Int
+    val windSpeed: Int,
 )
 
 fun WeatherDTO.toWeatherData() = WeatherData(
@@ -33,14 +33,25 @@ fun WeatherDTO.toWeatherData() = WeatherData(
     icon = WeatherDrawables.drawableMap[normalizeIconString(iconWeather)] ?: R.drawable.c3,
     temperature = temperatureAir,
     temperatureMin = null,
+    temperatureHeatIndex = temperatureHeatIndex,
+    temperatureHeatIndexMin = null,
+    temperatureAvg = 0,
     windSpeed = windSpeed,
     windDirection = windDirections[WindDirections.getWindDirectionIndex(windDirection, windSpeed)] ?: "—",
     precipitation = precipitation,
     windGust = windGust,
-    pressure = pressure
+    pressure = pressure,
+    pressureMin = null,
+    humidity = humidity,
+    pollenBirch = -1,
+    pollenGrass = -1,
+    radiation = radiation,
+    geomagnetic = -1,
+    snowHeight = 0.0,
+    fallingSnow = 0.0
 )
 
-fun WeatherDTO.toCurrentWeatherData(geomagnetic: Int = -1): CurrentWeatherData {
+fun WeatherDTO.toCurrentWeatherData(geomagnetic: Int = 0): CurrentWeatherData {
     return CurrentWeatherData(
         date = this.date,
         colorBackground = this.colorBackground,

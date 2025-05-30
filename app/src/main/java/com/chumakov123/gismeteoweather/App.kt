@@ -5,6 +5,8 @@ import coil.Coil
 import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.request.CachePolicy
+import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
+import com.chumakov123.gismeteoweather.data.local.DataStoreProvider
 import java.io.File
 
 class App : Application() {
@@ -24,5 +26,8 @@ class App : Application() {
             .build()
 
         Coil.setImageLoader(imageLoader)
+
+        val dataStore = DataStoreProvider.create(this)
+        WeatherRepo.init(dataStore)
     }
 }

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option java_package = "com.chumakov123.gismeteoweather";
+
+message WeatherCache {
+  repeated Entry entries = 1;
+
+  message Entry {
+    string cityCode = 1;
+    bytes payload = 2;     // JSON-сериализованный WeatherInfo.Available
+    int64 timestamp = 3;   // Время обновления
+  }
+}

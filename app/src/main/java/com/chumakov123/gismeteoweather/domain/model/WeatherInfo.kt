@@ -32,11 +32,23 @@ data class WeatherData(
     @DrawableRes val icon: Int,
     val temperature: Int,
     val temperatureMin: Int?,
+    val temperatureAvg: Int,
+    val temperatureHeatIndex: Int,
+    val temperatureHeatIndexMin: Int?,
     val windSpeed: Int,
     val windDirection: String,
     val windGust: Int,
     val precipitation: Double,
     val pressure: Int,
+    val pressureMin: Int?,
+    val humidity: Int,
+    val radiation: Int,
+    val geomagnetic: Int,
+    val pollenBirch: Int,
+    val pollenGrass: Int,
+    val snowHeight: Double,
+    val fallingSnow: Double,
+
 )
 
 @Serializable

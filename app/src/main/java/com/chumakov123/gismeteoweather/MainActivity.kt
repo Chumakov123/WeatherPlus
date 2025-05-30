@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GismeteoWeatherTheme {
+            GismeteoWeatherTheme(darkTheme = true) {
                 Scaffold { inner ->
                     WeatherMainScreen(modifier = Modifier.padding(inner), viewModel = weatherViewModel)
                 }

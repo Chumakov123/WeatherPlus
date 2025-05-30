@@ -3,6 +3,20 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20"
+    id("com.google.protobuf") version "0.9.5"
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.21.12"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java").option("lite")
+            }
+        }
+    }
 }
 
 android {
@@ -41,6 +55,10 @@ android {
 }
 
 dependencies {
+    implementation("androidx.datastore:datastore-core:1.1.7")
+    implementation("com.google.protobuf:protobuf-javalite:3.21.12")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.8.1")
+
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
     implementation("io.coil-kt:coil-compose:2.5.0")
@@ -59,6 +77,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.compose.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -1,5 +1,6 @@
 package com.chumakov123.gismeteoweather.domain.util
 
+import com.chumakov123.gismeteoweather.R
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.Instant
@@ -40,7 +41,7 @@ object Utils {
         return dateFormat.format(date)
     }
 
-    private val russianWeekdays = mapOf(
+     val russianWeekdays = mapOf(
         DayOfWeek.MONDAY    to "пн",
         DayOfWeek.TUESDAY   to "вт",
         DayOfWeek.WEDNESDAY to "ср",
