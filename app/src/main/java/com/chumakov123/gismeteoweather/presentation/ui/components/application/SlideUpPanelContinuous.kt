@@ -1,6 +1,7 @@
 package com.chumakov123.gismeteoweather.presentation.ui.components.application
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -37,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -61,27 +64,23 @@ fun SlideUpPanelContinuous(
         (panelHeightPx - headerHeightPx).coerceAtLeast(0f)
     }
 
-    val offsetY = remember { Animatable(maxOffset) }
+    val offsetY = remember { Animatable(maxOffset, Float.VectorConverter) }
     val decay = rememberSplineBasedDecay<Float>()
     val scrollDecay = rememberSplineBasedDecay<Float>()
 
-    var initialized by remember { mutableStateOf(false) }
     var isDragging by remember { mutableStateOf(false) }
     var scrollAnimationJob by remember { mutableStateOf<Job?>(null) }
 
     LaunchedEffect(maxOffset) {
         offsetY.updateBounds(lowerBound = 0f, upperBound = maxOffset)
-        if (!initialized && maxOffset > 0f) {
-            offsetY.snapTo(maxOffset)
-            initialized = true
-        }
+        offsetY.snapTo(maxOffset)
+        // offsetY.animateTo(0f)
     }
 
     val isFullyOpen = offsetY.value == 0f
     val canScrollContent = remember(contentHeightPx, panelHeightPx, headerHeightPx, isFullyOpen) {
         isFullyOpen && contentHeightPx > (panelHeightPx - headerHeightPx)
     }
-
     val scrollState = rememberScrollState()
 
     val draggableState = rememberDraggableState { delta ->
@@ -91,8 +90,6 @@ fun SlideUpPanelContinuous(
                 offsetY.stop()
                 offsetY.snapTo((offsetY.value + delta).coerceIn(0f, maxOffset))
             } else if (canScrollContent) {
-                scrollAnimationJob?.cancel()
-
                 when {
                     delta < 0 -> {
                         val newValue = (scrollState.value - delta).coerceAtLeast(0f)
@@ -114,25 +111,25 @@ fun SlideUpPanelContinuous(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        overlay?.invoke()
-        Box(
-            Modifier
-                .fillMaxSize()
-                .draggable(
-                    state = draggableState,
-                    orientation = Orientation.Vertical,
-                    onDragStarted = {
-                        isDragging = true
-                        scrollAnimationJob?.cancel()
-                    },
-                    onDragStopped = { velocity ->
-
-                            isDragging = false
-                            if (!isFullyOpen || !canScrollContent) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .draggable(
+                state = draggableState,
+                orientation = Orientation.Vertical,
+                onDragStarted = {
+                    isDragging = true
+                    scrollAnimationJob?.cancel()
+                },
+                onDragStopped = { velocity ->
+                    scope.launch {
+                        isDragging = false
+                        if (!isFullyOpen) {
+                            offsetY.animateDecay(velocity, decay)
+                        } else if (canScrollContent) {
+                            if (scrollState.value == 0 && velocity > 0) {
                                 offsetY.animateDecay(velocity, decay)
-                            } else if (canScrollContent && scrollState.value > 0) {
-                                // Применяем инерцию к прокрутке контента
+                            } else if (scrollState.value > 0) {
                                 scrollAnimationJob = scope.launch {
                                     val scrollAnimatable = Animatable(scrollState.value.toFloat())
                                     scrollAnimatable.animateDecay(
@@ -144,21 +141,32 @@ fun SlideUpPanelContinuous(
                                         }
                                     }
                                 }
-                            } else if (scrollState.value == 0 && velocity > 0) {
-                                offsetY.animateDecay(velocity, decay)
                             }
+                        } else {
+                            offsetY.animateDecay(velocity, decay)
+                        }
                     }
-                )
+                }
+            )
+    ) {
+        overlay?.invoke()
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                .graphicsLayer {
+                    alpha = if (panelHeightPx > 0f && headerHeightPx > 0f) 1f else 0f
+                }
+                .onGloballyPositioned { coords ->
+                    panelHeightPx = coords.size.height.toFloat()
+                }
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .offset { IntOffset(0, offsetY.value.roundToInt()) }
-                    .onGloballyPositioned { coords ->
-                        panelHeightPx = coords.size.height.toFloat()
-                    }
                     .background(color = backgroundColor)
             ) {
                 Row(
@@ -168,7 +176,7 @@ fun SlideUpPanelContinuous(
                             headerHeightPx = coords.size.height.toFloat()
                         },
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(
                         onClick = {
@@ -186,14 +194,13 @@ fun SlideUpPanelContinuous(
                         else Icons.Default.KeyboardArrowUp
                         Icon(
                             imageVector = icon,
-                            contentDescription = if (isFullyOpen) "Collapse Panel" else "Expand Panel",
+                            contentDescription = if (isFullyOpen) "Свернуть панель" else "Развернуть панель",
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
                     headerContent?.invoke(this)
                 }
-                HorizontalDivider()
                 Column(
                     Modifier
                         .fillMaxWidth()

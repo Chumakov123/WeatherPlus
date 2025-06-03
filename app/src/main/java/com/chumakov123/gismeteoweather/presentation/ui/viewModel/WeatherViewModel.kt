@@ -3,10 +3,14 @@ package com.chumakov123.gismeteoweather.presentation.ui.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
+import com.chumakov123.gismeteoweather.data.repo.WeatherSettingsRepository
+import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 sealed class WeatherUiState {
@@ -19,13 +23,27 @@ class WeatherViewModel(
     private val repo: WeatherRepo = WeatherRepo
 ) : ViewModel() {
 
+    val settings: StateFlow<WeatherDisplaySettings> =
+        WeatherSettingsRepository.settingsFlow
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = WeatherDisplaySettings()
+            )
+
+    fun onSettingsChanged(newSettings: WeatherDisplaySettings) {
+        viewModelScope.launch {
+            WeatherSettingsRepository.updateSettings(newSettings)
+        }
+    }
+
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
     val uiState: StateFlow<WeatherUiState> = _uiState.asStateFlow()
 
     private var lastAvailable: WeatherInfo.Available? = null
 
     init {
-        loadWeather("krasnodar-5136") //TODO выбор города (или auto)
+        loadWeather("sankt-peterburg-4079") //TODO выбор города (или auto)
     }
 
     fun loadWeather(cityCode: String) {

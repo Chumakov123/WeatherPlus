@@ -44,8 +44,8 @@ object WeatherRepo {
                 )
                 cache[cityCode] = Cached(avail, dsEntry.timestamp)
                 return avail
-            }.onFailure {
-                // Если не удалось декодировать — идём дальше
+            }.onFailure { throwable ->
+                throwable.printStackTrace()
             }
         }
 

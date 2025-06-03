@@ -40,6 +40,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -52,20 +53,23 @@ android {
     buildFeatures {
         compose = true
     }
+    lint {
+        disable += "NullSafeMutableLiveData"
+    }
 }
 
 dependencies {
-    implementation("androidx.datastore:datastore-core:1.1.7")
-    implementation("com.google.protobuf:protobuf-javalite:3.21.12")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.8.1")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
-    implementation("io.coil-kt:coil-compose:2.5.0")
-    implementation ("org.jsoup:jsoup:1.19.1")
-    implementation("org.json:json:20250107")
-
-    implementation("androidx.navigation:navigation-compose:2.9.0")
+    implementation(libs.reorderable)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.protobuf.javalite)
+    implementation(libs.kotlinx.serialization.protobuf)
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.coil.compose)
+    implementation (libs.jsoup)
+    implementation(libs.json)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -74,8 +78,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("androidx.glance:glance:1.1.1")
-    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation(libs.androidx.glance)
+    implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.recyclerview)

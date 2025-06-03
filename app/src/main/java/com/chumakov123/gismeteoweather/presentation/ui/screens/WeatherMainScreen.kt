@@ -25,8 +25,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.chumakov123.gismeteoweather.domain.model.ForecastMode
+import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.PreviewWeatherTable
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.SlideUpPanelContinuous
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.WeatherContent
@@ -36,6 +39,7 @@ import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewMode
 @Composable
 fun WeatherMainScreen(
     viewModel: WeatherViewModel,
+    settings: WeatherDisplaySettings,
     modifier: Modifier = Modifier,
     onSettingsClick: () -> Unit,
     onAddCityClick: () -> Unit
@@ -53,13 +57,34 @@ fun WeatherMainScreen(
         }
         is WeatherUiState.Success -> {
             val data = (state as WeatherUiState.Success).data
-            WeatherContent(
-                weather = data,
-                onRefresh = { viewModel.loadWeather(data.placeCode) },
-                modifier = modifier,
-            )
-
             SlideUpPanelContinuous(
+                overlay = {
+                    WeatherContent(
+                        weather = data,
+                        onRefresh = { viewModel.loadWeather(data.placeCode) },
+                        modifier = modifier,
+                    )
+                    Box(Modifier.fillMaxSize()) {
+                        IconButton(
+                            onClick = onAddCityClick,
+                            modifier = modifier.align(Alignment.TopStart).padding(horizontal = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                            )
+                        }
+                        IconButton(
+                            onClick = onSettingsClick,
+                            modifier = modifier.align(Alignment.TopEnd).padding(horizontal = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                },
                 headerContent = {
                     TabRow(
                         selectedTabIndex = selectedTab,
@@ -80,34 +105,17 @@ fun WeatherMainScreen(
                         0 -> PreviewWeatherTable(
                             weather = s.data.hourly,
                             forecastMode = ForecastMode.ByHours,
-                            localDateTime = s.data.localTime)
+                            localDateTime = s.data.localTime,
+                            displaySettings = settings)
                         1 -> PreviewWeatherTable(
                             weather = s.data.daily,
                             forecastMode = ForecastMode.ByDays,
-                            localDateTime = s.data.localTime)
+                            localDateTime = s.data.localTime,
+                            displaySettings = settings)
                     }
                 }
             )
-            Box(Modifier.fillMaxSize()) {
-                IconButton(
-                    onClick = onAddCityClick,
-                    modifier = modifier.align(Alignment.TopStart).padding(horizontal = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                    )
-                }
-                IconButton(
-                    onClick = onSettingsClick,
-                    modifier = modifier.align(Alignment.TopEnd).padding(horizontal = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = null
-                    )
-                }
-            }
+
 
         }
         is WeatherUiState.Error -> {

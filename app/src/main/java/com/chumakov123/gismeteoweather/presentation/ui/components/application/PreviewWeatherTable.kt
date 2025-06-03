@@ -11,7 +11,9 @@ import com.chumakov123.gismeteoweather.R
 import com.chumakov123.gismeteoweather.domain.model.ForecastMode
 import com.chumakov123.gismeteoweather.domain.model.WeatherCell
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
+import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.WeatherRow
+import com.chumakov123.gismeteoweather.domain.model.WeatherRowType
 import com.chumakov123.gismeteoweather.domain.util.TemperatureGradation.interpolateTemperatureColor
 import com.chumakov123.gismeteoweather.domain.util.Utils
 import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables.getGeomagneticDrawable
@@ -30,7 +32,8 @@ import kotlin.math.ceil
 fun PreviewWeatherTable(
     weather: List<WeatherData>,
     forecastMode: ForecastMode,
-    localDateTime: LocalDateTime
+    localDateTime: LocalDateTime,
+    displaySettings: WeatherDisplaySettings = WeatherDisplaySettings()
 ) {
     val startIndex = if (forecastMode == ForecastMode.ByDays) 0
     else Utils.getIntervalIndexByHour(localDateTime.hour)
@@ -188,23 +191,37 @@ fun PreviewWeatherTable(
         labelTextSize     = 16.sp
     )
 
+    val allRows = mutableMapOf<WeatherRowType, WeatherRow>().apply {
+        put(WeatherRowType.TIME_LABELS, timeLabelsRow)
+        put(WeatherRowType.ICONS, iconsRow)
+        put(WeatherRowType.TEMP, tempChartRow)
+
+        put(WeatherRowType.TEMP_HEAT_INDEX, tempHeatIndexChartRow)
+        if (forecastMode == ForecastMode.ByDays) {
+            put(WeatherRowType.TEMP_AVG, tempAvgChartRow)
+        }
+        put(WeatherRowType.RADIATION, radiationRow)
+        put(WeatherRowType.GEOMAGNETIC, geomagneticRow)
+        put(WeatherRowType.HUMIDITY, humidityRow)
+        put(WeatherRowType.POLLEN_BIRCH, pollenBirchRow)
+        put(WeatherRowType.POLLEN_GRASS, pollenGrassRow)
+        put(WeatherRowType.WIND, windRow)
+        put(WeatherRowType.PRECIP, precipRow)
+        put(WeatherRowType.FALLING_SNOW, fallingSnowRow)
+        put(WeatherRowType.SNOW_HEIGHT, snowHeightRow)
+        put(WeatherRowType.PRESSURE, pressureChart)
+    }
+
     val rows = buildList {
-        add(timeLabelsRow)
-        add(iconsRow)
-        add(tempChartRow)
-        add(tempHeatIndexChartRow)
-        if (forecastMode == ForecastMode.ByDays)
-            add(tempAvgChartRow)
-        add(pollenBirchRow)
-        add(pollenGrassRow)
-        add(radiationRow)
-        add(geomagneticRow)
-        add(humidityRow)
-        add(fallingSnowRow)
-        add(snowHeightRow)
-        add(windRow)
-        add(precipRow)
-        add(pressureChart)
+        add(allRows[WeatherRowType.TIME_LABELS]!!)
+        add(allRows[WeatherRowType.ICONS]!!)
+        add(allRows[WeatherRowType.TEMP]!!)
+
+        displaySettings.rowOrder.forEach { rowType ->
+            if (displaySettings.enabledRows.contains(rowType) && allRows.containsKey(rowType)) {
+                add(allRows[rowType]!!)
+            }
+        }
     }
 
     Surface(color = MaterialTheme.colorScheme.background) {

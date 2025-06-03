@@ -19,3 +19,13 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keepattributes *Annotation*, InnerClasses
+-dontwarn kotlinx.serialization.**
+-keep class kotlinx.serialization.** { *; }
+-keepclasseswithmembers class ** {
+    @kotlinx.serialization.* <methods>;
+}
+
+-keep class com.google.protobuf.** { *; }
+-keep class ** extends com.google.protobuf.GeneratedMessageLite { *; }
