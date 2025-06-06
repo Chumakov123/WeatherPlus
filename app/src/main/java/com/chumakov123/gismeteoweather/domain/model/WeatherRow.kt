@@ -12,7 +12,6 @@ sealed class WeatherRow {
         val values: List<WeatherCell>,
         val useSurface: Boolean = false,
         val cellHeight: Dp = 48.dp,
-        val cellWidth: Dp = 64.dp
     ) : WeatherRow()
 
     data class ChartRow(

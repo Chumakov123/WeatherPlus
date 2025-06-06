@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
@@ -35,19 +36,19 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.displayName
+import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    viewModel: WeatherViewModel,
     onBackClick: () -> Unit,
-    settings: WeatherDisplaySettings,
-    onSettingsChanged: (WeatherDisplaySettings) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val settings by viewModel.settings.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,7 +78,7 @@ fun SettingsScreen(
         DisposableEffect(Unit) {
             onDispose {
                 if ((localOrder != settings.rowOrder) || (localEnabledRows != settings.enabledRows)) {
-                    onSettingsChanged(
+                    viewModel.onSettingsChanged(
                         settings.copy(
                             rowOrder = localOrder.toList(),
                             enabledRows = localEnabledRows

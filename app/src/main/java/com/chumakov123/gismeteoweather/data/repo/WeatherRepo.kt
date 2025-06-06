@@ -24,20 +24,21 @@ object WeatherRepo {
         this.dataStore = dataStore
     }
 
-    suspend fun getWeatherInfo(cityCode: String): WeatherInfo {
+    suspend fun getWeatherInfo(
+        cityCode: String,
+        allowStale: Boolean = false
+    ): WeatherInfo {
         val now = System.currentTimeMillis()
 
-        // 1. Проверка in-memory кэша
         cache[cityCode]?.let { (info, ts) ->
-            if (now - ts < TTL_MS) return info
+            if (allowStale || now - ts < TTL_MS) return info
         }
 
-        // 2. Проверка DataStore
         val dsEntry = dataStore.data
             .map { it.entriesList.find { it.cityCode == cityCode } }
             .firstOrNull()
 
-        if (dsEntry != null && now - dsEntry.timestamp < TTL_MS) {
+        if (dsEntry != null && (allowStale || now - dsEntry.timestamp < TTL_MS)) {
             runCatching {
                 val avail = json.decodeFromString<WeatherInfo.Available>(
                     dsEntry.payload.toByteArray().decodeToString()
@@ -49,7 +50,6 @@ object WeatherRepo {
             }
         }
 
-        // 3. Запрос с сервера
         val fresh = fetchFromGismeteo(cityCode)
         cache[cityCode] = Cached(fresh, now)
 

@@ -25,11 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
-import com.chumakov123.gismeteoweather.domain.model.ForecastMode
-import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.PreviewWeatherTable
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.SlideUpPanelContinuous
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.WeatherContent
@@ -39,12 +35,12 @@ import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewMode
 @Composable
 fun WeatherMainScreen(
     viewModel: WeatherViewModel,
-    settings: WeatherDisplaySettings,
     modifier: Modifier = Modifier,
     onSettingsClick: () -> Unit,
     onAddCityClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    val settings by viewModel.settings.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("По часам", "По дням")
@@ -56,7 +52,7 @@ fun WeatherMainScreen(
             }
         }
         is WeatherUiState.Success -> {
-            val data = (state as WeatherUiState.Success).data
+            val data = (state as WeatherUiState.Success).rawData
             SlideUpPanelContinuous(
                 overlay = {
                     WeatherContent(
@@ -101,16 +97,14 @@ fun WeatherMainScreen(
                 },
                 panelContent = {
                     val s = (state as WeatherUiState.Success)
-                    when (selectedTab) {
-                        0 -> PreviewWeatherTable(
-                            weather = s.data.hourly,
-                            forecastMode = ForecastMode.ByHours,
-                            localDateTime = s.data.localTime,
+                    if (selectedTab == 0 && s.hourlyPreprocessedData != null) {
+                        PreviewWeatherTable(
+                            weatherRows = s.hourlyPreprocessedData,
                             displaySettings = settings)
-                        1 -> PreviewWeatherTable(
-                            weather = s.data.daily,
-                            forecastMode = ForecastMode.ByDays,
-                            localDateTime = s.data.localTime,
+                    }
+                    if (selectedTab == 1 && s.dailyPreprocessedData != null) {
+                        PreviewWeatherTable(
+                            weatherRows = s.dailyPreprocessedData,
                             displaySettings = settings)
                     }
                 }

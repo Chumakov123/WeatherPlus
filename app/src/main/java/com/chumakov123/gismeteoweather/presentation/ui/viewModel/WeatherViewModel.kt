@@ -4,8 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
 import com.chumakov123.gismeteoweather.data.repo.WeatherSettingsRepository
+import com.chumakov123.gismeteoweather.domain.model.ForecastMode
+import com.chumakov123.gismeteoweather.domain.model.WeatherDataPreprocessor
 import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import com.chumakov123.gismeteoweather.domain.model.WeatherRow
+import com.chumakov123.gismeteoweather.domain.model.WeatherRowType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +19,11 @@ import kotlinx.coroutines.launch
 
 sealed class WeatherUiState {
     object Loading : WeatherUiState()
-    data class Success(val data: WeatherInfo.Available) : WeatherUiState()
+    data class Success(
+        val rawData: WeatherInfo.Available,
+        val hourlyPreprocessedData: Map<WeatherRowType, WeatherRow>? = null,
+        val dailyPreprocessedData: Map<WeatherRowType, WeatherRow>? = null
+    ) : WeatherUiState()
     data class Error(val message: String) : WeatherUiState()
 }
 
@@ -43,7 +51,7 @@ class WeatherViewModel(
     private var lastAvailable: WeatherInfo.Available? = null
 
     init {
-        loadWeather("sankt-peterburg-4079") //TODO выбор города (или auto)
+        loadWeather("sankt-peterburg-4079")
     }
 
     fun loadWeather(cityCode: String) {
@@ -55,13 +63,26 @@ class WeatherViewModel(
             }
 
             try {
-                val info = repo.getWeatherInfo(cityCode)
-                if (info is WeatherInfo.Available) {
-                    lastAvailable = info
-                    _uiState.value = WeatherUiState.Success(info)
-                } else {
+                val rawInfo = repo.getWeatherInfo(cityCode)
+                if (rawInfo !is WeatherInfo.Available) {
                     _uiState.value = WeatherUiState.Error("Нет данных")
+                    return@launch
                 }
+                _uiState.value = WeatherUiState.Success(rawInfo)
+                val hourlyPreprocessed = WeatherDataPreprocessor.preprocess(
+                    weather = rawInfo.hourly,
+                    forecastMode = ForecastMode.ByHours,
+                    localDateTime = rawInfo.localTime
+                )
+                _uiState.value = WeatherUiState.Success(rawInfo, hourlyPreprocessed)
+                val dailyPreprocessed = WeatherDataPreprocessor.preprocess(
+                    weather = rawInfo.daily,
+                    forecastMode = ForecastMode.ByDays,
+                    localDateTime = rawInfo.localTime
+                )
+                _uiState.value = WeatherUiState.Success(rawInfo, hourlyPreprocessed, dailyPreprocessed)
+                lastAvailable = rawInfo
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 if (lastAvailable != null) {
