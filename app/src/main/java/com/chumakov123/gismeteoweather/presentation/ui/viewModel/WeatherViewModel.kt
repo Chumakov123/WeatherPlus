@@ -51,7 +51,7 @@ class WeatherViewModel(
     private var lastAvailable: WeatherInfo.Available? = null
 
     init {
-        loadWeather("sankt-peterburg-4079")
+        loadWeather("auto")
     }
 
     fun loadWeather(cityCode: String) {

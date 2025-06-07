@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -63,7 +64,7 @@ fun WeatherMainScreen(
                     Box(Modifier.fillMaxSize()) {
                         IconButton(
                             onClick = onAddCityClick,
-                            modifier = modifier.align(Alignment.TopStart).padding(horizontal = 8.dp)
+                            modifier = modifier.align(Alignment.TopStart).padding(vertical = 8.dp, horizontal = 4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
@@ -72,7 +73,7 @@ fun WeatherMainScreen(
                         }
                         IconButton(
                             onClick = onSettingsClick,
-                            modifier = modifier.align(Alignment.TopEnd).padding(horizontal = 8.dp)
+                            modifier = modifier.align(Alignment.TopEnd).padding(vertical = 8.dp, horizontal = 4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
@@ -90,7 +91,15 @@ fun WeatherMainScreen(
                             Tab(
                                 selected = selectedTab == index,
                                 onClick = { selectedTab = index },
-                                text = { Text(title) }
+                                text = {
+                                    Text(
+                                        text = title,
+                                        color = if (selectedTab == index)
+                                            MaterialTheme.colorScheme.onSurface
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             )
                         }
                     }

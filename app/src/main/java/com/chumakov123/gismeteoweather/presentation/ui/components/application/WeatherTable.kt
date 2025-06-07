@@ -88,7 +88,7 @@ private fun DataRowContent(
         Box(labelModifier) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
             )
         }
     }
@@ -201,8 +201,8 @@ private fun WeatherCellContent(cell: WeatherCell, cellWidth: Dp) {
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    Color(0xFF29343A),
-                                    Color(0xFF1B2023)
+                                    Color(0xFF0B4059),
+                                    Color(0xFF093549)
                                 )
                             ),
                             shape = RoundedCornerShape(4.dp)
@@ -250,7 +250,7 @@ private fun ChartRowContent(
         Box(labelModifier) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
             )
         }
     }

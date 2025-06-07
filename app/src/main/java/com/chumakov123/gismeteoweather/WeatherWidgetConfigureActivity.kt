@@ -1,5 +1,6 @@
 package com.chumakov123.gismeteoweather
 
+import WeatherAppTheme
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
@@ -36,13 +37,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +60,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +69,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
@@ -74,7 +83,6 @@ import com.chumakov123.gismeteoweather.domain.model.WidgetState
 import com.chumakov123.gismeteoweather.presentation.receiver.WeatherUpdateReceiver
 import com.chumakov123.gismeteoweather.presentation.ui.WeatherGlanceWidget
 import com.chumakov123.gismeteoweather.presentation.ui.WeatherWidgetPreview
-import com.chumakov123.gismeteoweather.ui.theme.GismeteoWeatherTheme
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -120,8 +128,17 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
 
         setResult(RESULT_CANCELED)
 
+        //WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        window.statusBarColor = Color(0xFF17629F).toArgb()
+        window.navigationBarColor = Color(0xFF2196F3).toArgb()
+
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.isAppearanceLightStatusBars = false
+        insetsController.isAppearanceLightNavigationBars = false
+
         setContent {
-            GismeteoWeatherTheme {
+            WeatherAppTheme(isMainScreen = false) {
                 Scaffold { innerPadding ->
                     WeatherWidgetConfigureScreen(
                         initialState = currentState,
@@ -195,6 +212,8 @@ fun WeatherWidgetConfigureScreen(
     modifier: Modifier = Modifier,
     previewWeatherState: WidgetState
 ) {
+
+
     var previewState by remember { mutableStateOf(previewWeatherState) }
 
     val configuration = LocalConfiguration.current
@@ -282,7 +301,8 @@ fun WeatherWidgetConfigureScreen(
                     title = {
                         Text(
                             text = "Виджет погоды",
-                            style = MaterialTheme.typography.titleLarge
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     },
                     actions = {
@@ -295,23 +315,50 @@ fun WeatherWidgetConfigureScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Check,
-                                contentDescription = "Подтвердить"
+                                contentDescription = "Подтвердить",
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 )
 
                 // TabRow под TopAppBar
-                TabRow(selectedTabIndex = tabIndex) {
+                TabRow(
+                    selectedTabIndex = tabIndex,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    indicator = { tabPositions ->
+                        SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(tabPositions[tabIndex]),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                ) {
                     tabs.forEachIndexed { index, title ->
+                        val isSelectedIndex = index == tabIndex
                         Tab(
-                            selected = tabIndex == index,
+                            selected = isSelectedIndex,
                             onClick = {
                                 previewState = previewState.copy(
                                     forecastMode = if (index == 0) ForecastMode.ByHours else ForecastMode.ByDays
                                 )
                             },
-                            text = { Text(title) }
+                            text = {
+                                Text(
+                                    text = title,
+                                    color = if (isSelectedIndex)
+                                        MaterialTheme.colorScheme.onPrimary
+                                    else
+                                        Color(0xFFb1d8fe)
+                                )
+                            },
+                            selectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -363,7 +410,6 @@ fun WeatherWidgetConfigureScreen(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         text = selected.title,
-                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -529,7 +575,11 @@ private fun SettingRow(
             onCheckedChange = onCheckedChange,
             modifier = Modifier
                 .size(width = 32.dp, height = 16.dp)
-                .scale(0.7f)
+                .scale(0.7f),
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color(0xFF1a6fda),
+                checkedTrackColor = Color(0xFFc5daf7)
+            )
         )
     }
 }
@@ -550,7 +600,12 @@ fun TransparencySetting(
             value = backgroundTransparency,
             onValueChange = onTransparencyChange,
             valueRange = 0f..100f,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            colors = SliderDefaults.colors(
+                thumbColor = Color(0xFF1a6fda),
+                activeTrackColor = Color(0xFF1a6fda),
+                inactiveTrackColor = Color(0xFFc5daf7)
+            )
         )
         Spacer(Modifier.width(8.dp))
         Box(

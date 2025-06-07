@@ -1,6 +1,5 @@
 package com.chumakov123.gismeteoweather.domain.util
 
-import com.chumakov123.gismeteoweather.R
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.Instant

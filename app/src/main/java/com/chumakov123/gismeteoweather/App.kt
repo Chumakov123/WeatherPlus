@@ -5,8 +5,8 @@ import coil.Coil
 import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.request.CachePolicy
-import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
 import com.chumakov123.gismeteoweather.data.provider.DataStoreProvider
+import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
 import com.chumakov123.gismeteoweather.data.repo.WeatherSettingsRepository
 import java.io.File
 

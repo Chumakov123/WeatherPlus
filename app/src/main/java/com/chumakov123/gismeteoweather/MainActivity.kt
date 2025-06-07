@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import com.chumakov123.gismeteoweather.presentation.ui.navigation.WeatherNavHost
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewModel
-import com.chumakov123.gismeteoweather.ui.theme.GismeteoWeatherTheme
 
 class MainActivity : ComponentActivity() {
     private val weatherViewModel: WeatherViewModel by viewModels()
@@ -16,9 +15,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            GismeteoWeatherTheme(darkTheme = true) {
-                WeatherNavHost(viewModel = weatherViewModel)
-            }
+            WeatherNavHost(viewModel = weatherViewModel)
         }
     }
 }

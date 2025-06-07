@@ -24,7 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,17 +63,28 @@ fun SlideUpPanelContinuous(
         (panelHeightPx - headerHeightPx).coerceAtLeast(0f)
     }
 
-    val offsetY = remember { Animatable(maxOffset, Float.VectorConverter) }
+    val offsetY = remember { Animatable(0f, Float.VectorConverter) }
     val decay = rememberSplineBasedDecay<Float>()
     val scrollDecay = rememberSplineBasedDecay<Float>()
 
     var isDragging by remember { mutableStateOf(false) }
     var scrollAnimationJob by remember { mutableStateOf<Job?>(null) }
 
+    var isInitialized by remember { mutableStateOf(false) }
+
     LaunchedEffect(maxOffset) {
-        offsetY.updateBounds(lowerBound = 0f, upperBound = maxOffset)
-        offsetY.snapTo(maxOffset)
-        // offsetY.animateTo(0f)
+        if (maxOffset > 0f) {
+            if (!isInitialized) {
+                offsetY.updateBounds(lowerBound = 0f, upperBound = maxOffset)
+                offsetY.snapTo(maxOffset)
+                isInitialized = true
+            } else {
+                offsetY.updateBounds(lowerBound = 0f, upperBound = maxOffset)
+                val currentUpperBound = offsetY.upperBound ?: maxOffset
+                val currentProgress = if (currentUpperBound > 0f) offsetY.value / currentUpperBound else 1f
+                offsetY.snapTo(maxOffset * currentProgress)
+            }
+        }
     }
 
     val isFullyOpen = offsetY.value == 0f
@@ -158,7 +168,7 @@ fun SlideUpPanelContinuous(
                 .navigationBarsPadding()
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .graphicsLayer {
-                    alpha = if (panelHeightPx > 0f && headerHeightPx > 0f) 1f else 0f
+                    alpha = if (isInitialized) 1f else 0f
                 }
                 .onGloballyPositioned { coords ->
                     panelHeightPx = coords.size.height.toFloat()
@@ -195,7 +205,7 @@ fun SlideUpPanelContinuous(
                         Icon(
                             imageVector = icon,
                             contentDescription = if (isFullyOpen) "Свернуть панель" else "Развернуть панель",
-                            tint = MaterialTheme.colorScheme.onSurface,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
