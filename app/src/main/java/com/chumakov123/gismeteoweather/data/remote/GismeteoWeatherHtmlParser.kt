@@ -73,11 +73,9 @@ object GismeteoWeatherHtmlParser {
 
             iconString = normalizeIconString(iconString)
 
-            val iconDrawable = WeatherDrawables.drawableMap[iconString] ?: R.drawable.c3
-
             val weatherData = WeatherData(
                 description = icon.tooltip,
-                icon = iconDrawable,
+                icon = iconString,
                 temperature = tMax.toInt(),
                 temperatureMin = tMin?.toInt(),
                 temperatureAvg = tAvg,

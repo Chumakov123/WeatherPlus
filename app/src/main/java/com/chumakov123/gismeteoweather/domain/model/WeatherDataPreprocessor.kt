@@ -78,7 +78,7 @@ object WeatherDataPreprocessor {
         return WeatherRow.DataRow(
             label = null,
             values = slice.map { wd ->
-                WeatherCell.Icon(wd.icon, contentDescription = "Погода")
+                WeatherCell.WeatherIcon(wd.icon, contentDescription = "Погода")
             },
             useSurface = false,
             cellHeight = 48.dp

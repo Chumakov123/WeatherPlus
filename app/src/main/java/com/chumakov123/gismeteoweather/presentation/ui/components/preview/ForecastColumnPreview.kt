@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
 import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
 import com.chumakov123.gismeteoweather.domain.util.TemperatureGradation.interpolateTemperatureColor
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 import com.chumakov123.gismeteoweather.domain.util.WindSpeedGradation.interpolateWindColor
 
 @Composable
@@ -48,7 +49,7 @@ fun ForecastColumnPreview(
 
         // Иконка погоды
         Image(
-            painter = painterResource(id = weatherData.icon),
+            painter = painterResource(id = WeatherDrawables.getWeatherIcon(weatherData.icon)),
             contentDescription = weatherData.description,
             modifier = Modifier.size(32.dp)
         )

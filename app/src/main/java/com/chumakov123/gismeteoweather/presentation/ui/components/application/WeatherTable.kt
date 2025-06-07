@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.chumakov123.gismeteoweather.domain.model.WeatherCell
 import com.chumakov123.gismeteoweather.domain.model.WeatherRow
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 
 @Composable
 fun WeatherTable(
@@ -124,9 +125,9 @@ private fun WeatherCellContent(cell: WeatherCell, cellWidth: Dp) {
                     .wrapContentSize(Alignment.Center)
             )
         }
-        is WeatherCell.Icon -> {
+        is WeatherCell.WeatherIcon -> {
             Image(
-                imageVector = ImageVector.vectorResource(cell.resId),
+                imageVector = ImageVector.vectorResource(WeatherDrawables.getWeatherIcon(cell.icon)),
                 contentDescription = cell.contentDescription,
                 modifier = Modifier.fillMaxSize()
             )

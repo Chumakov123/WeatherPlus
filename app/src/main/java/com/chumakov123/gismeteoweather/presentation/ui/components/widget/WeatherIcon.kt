@@ -9,12 +9,13 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.size
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 
 @Composable
 fun WeatherIcon(weatherInfo: WeatherInfo.Available, modifier: GlanceModifier = GlanceModifier) {
     Box(modifier = modifier, contentAlignment = Alignment.TopStart) {
         Image(
-            provider = ImageProvider(weatherInfo.now.icon),
+            provider = ImageProvider(WeatherDrawables.getWeatherIcon(weatherInfo.now.icon)),
             contentDescription = weatherInfo.now.description,
             modifier = GlanceModifier.size(36.dp),
         )

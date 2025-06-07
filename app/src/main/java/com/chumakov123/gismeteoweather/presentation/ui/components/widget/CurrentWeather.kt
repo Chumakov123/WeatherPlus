@@ -21,6 +21,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 
 @Composable
 fun CurrentWeather(
@@ -43,7 +44,7 @@ fun CurrentWeather(
             if (forecastColumns < 2) {
                     Box(contentAlignment = Alignment.TopCenter) {
                         Image(
-                            provider = ImageProvider(weatherInfo.now.icon),
+                            provider = ImageProvider(WeatherDrawables.getWeatherIcon(weatherInfo.now.icon)),
                             contentDescription = weatherInfo.now.description,
                             modifier = GlanceModifier.size(30.dp),
                         )

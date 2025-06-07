@@ -29,7 +29,7 @@ sealed interface WeatherInfo {
 @Serializable
 data class WeatherData(
     val description: String,
-    @DrawableRes val icon: Int,
+    val icon: String,
     val temperature: Int,
     val temperatureMin: Int?,
     val temperatureAvg: Int,
@@ -57,7 +57,7 @@ data class CurrentWeatherData(
     val colorBackground: String,
     val description: String,
     val iconWeather: String,
-    @DrawableRes val icon: Int,
+    val icon: String,
     val temperature: Int,
     val humidity: Int,
     val windSpeed: Int,

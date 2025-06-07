@@ -6,7 +6,7 @@ import androidx.compose.ui.unit.Dp
 
 sealed class WeatherCell {
     data class Text(val text: String) : WeatherCell()
-    data class Icon(@DrawableRes val resId: Int, val contentDescription: String? = null) : WeatherCell()
+    data class WeatherIcon(val icon: String, val contentDescription: String? = null) : WeatherCell()
 
     data class IconWithCenterText(
         @DrawableRes val iconRes: Int,

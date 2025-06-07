@@ -4,6 +4,8 @@ import com.chumakov123.gismeteoweather.R
 import kotlin.math.ceil
 
 object WeatherDrawables {
+    fun getWeatherIcon(icon: String): Int = drawableMap[icon] ?: R.drawable.c3
+
     val drawableMap: Map<String, Int> = mapOf(
         "c3" to R.drawable.c3,
         "c3_r1" to R.drawable.c3_r1,

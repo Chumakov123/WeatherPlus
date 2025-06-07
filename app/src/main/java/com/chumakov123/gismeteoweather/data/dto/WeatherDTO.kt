@@ -30,7 +30,7 @@ data class WeatherDTO(
 
 fun WeatherDTO.toWeatherData() = WeatherData(
     description = description,
-    icon = WeatherDrawables.drawableMap[normalizeIconString(iconWeather)] ?: R.drawable.c3,
+    icon = normalizeIconString(iconWeather),
     temperature = temperatureAir,
     temperatureMin = null,
     temperatureHeatIndex = temperatureHeatIndex,
@@ -57,7 +57,7 @@ fun WeatherDTO.toCurrentWeatherData(geomagnetic: Int = 0): CurrentWeatherData {
         colorBackground = this.colorBackground,
         description = this.description,
         iconWeather = this.iconWeather,
-        icon = WeatherDrawables.drawableMap[normalizeIconString(iconWeather)] ?: R.drawable.c3,
+        icon = normalizeIconString(iconWeather),
         temperature = this.temperatureAir,
         humidity = this.humidity,
         windSpeed = this.windSpeed,

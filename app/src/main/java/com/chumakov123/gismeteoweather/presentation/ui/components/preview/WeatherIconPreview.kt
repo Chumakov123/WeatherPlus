@@ -10,12 +10,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 
 @Composable
 fun WeatherIconPreview(weatherInfo: WeatherInfo.Available, modifier: Modifier = Modifier) {
     Box(modifier = modifier, contentAlignment = Alignment.TopStart) {
         Image(
-            imageVector = ImageVector.vectorResource(weatherInfo.now.icon),
+            imageVector = ImageVector.vectorResource(WeatherDrawables.getWeatherIcon(weatherInfo.now.icon)),
             contentDescription = weatherInfo.now.description,
             modifier = Modifier.size(36.dp),
         )
