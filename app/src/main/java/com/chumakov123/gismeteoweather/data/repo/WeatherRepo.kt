@@ -31,7 +31,9 @@ object WeatherRepo {
         val now = System.currentTimeMillis()
 
         cache[cityCode]?.let { (info, ts) ->
-            if (allowStale || now - ts < TTL_MS) return info
+            if (allowStale || isActual(ts)) {
+                return info
+            }
         }
 
         val dsEntry = dataStore.data
@@ -58,6 +60,10 @@ object WeatherRepo {
         }
 
         return fresh
+    }
+
+    fun isActual(weatherUpdateTime: Long, referenceTime: Long = System.currentTimeMillis(), ttlMs: Long = 5 * 60 * 1000L): Boolean {
+        return referenceTime - weatherUpdateTime < ttlMs
     }
 
     private suspend fun saveToDataStore(cityCode: String, info: WeatherInfo.Available, timestamp: Long) {
