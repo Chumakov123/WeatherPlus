@@ -12,8 +12,11 @@ object GismeteoHtmlFetcher {
     suspend fun getNowHtml(cityCode: String): Document =
         fetchHtmlWithGzip(cityCode, "now/")
 
-    suspend fun getTodayHtml(cityCode: String): Document =
+    suspend fun getTodayHtml(cityCode: String): Document = //Интервал три часа
         fetchHtmlWithGzip(cityCode)
+
+    suspend fun getHourlyHtml(cityCode: String): Document = //Интервал час
+        fetchHtmlWithGzip(cityCode, "hourly/")
 
     suspend fun getTomorrowHtml(cityCode: String): Document =
         fetchHtmlWithGzip(cityCode, "tomorrow/")

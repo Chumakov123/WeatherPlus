@@ -1,5 +1,6 @@
 package com.chumakov123.gismeteoweather.presentation.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,21 +8,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -30,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.PreviewWeatherTable
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.SlideUpPanelContinuous
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.WeatherContent
-import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherUiState
+import com.chumakov123.gismeteoweather.presentation.ui.viewModel.CityWeatherUiState
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewModel
 
 @Composable
@@ -43,95 +51,174 @@ fun WeatherMainScreen(
     val state by viewModel.uiState.collectAsState()
     val settings by viewModel.settings.collectAsState()
 
+    val cityCodes = state.cityStates.keys.toList()
+
+    // Если городов нет — показать кнопку добавить
+    if (cityCodes.isEmpty()) {
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Button(onClick = onAddCityClick) {
+                Text("Добавить город")
+            }
+        }
+        return
+    }
+
+    val pagerState = rememberPagerState(
+        initialPage = cityCodes.indexOf(state.selectedCityCode).coerceAtLeast(0),
+        pageCount = { cityCodes.size }
+    )
+
+    // Обновляем выбранный город при свайпе
+    LaunchedEffect(pagerState.currentPage) {
+        val newSelected = cityCodes.getOrNull(pagerState.currentPage)
+        if (newSelected != null && newSelected != state.selectedCityCode) {
+            viewModel.selectCity(newSelected)
+        }
+    }
+
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("По часам", "По дням")
 
-    when (state) {
-        is WeatherUiState.Loading -> {
-            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-        is WeatherUiState.Success -> {
-            val data = (state as WeatherUiState.Success).rawData
-            SlideUpPanelContinuous(
-                overlay = {
-                    WeatherContent(
-                        weather = data,
-                        onRefresh = { viewModel.loadWeather(data.placeCode) },
-                        modifier = modifier,
-                    )
-                    Box(Modifier.fillMaxSize()) {
-                        IconButton(
-                            onClick = onAddCityClick,
-                            modifier = modifier.align(Alignment.TopStart).padding(vertical = 8.dp, horizontal = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                            )
+    val selectedCityState = state.cityStates[state.selectedCityCode]
+
+    SlideUpPanelContinuous(
+        overlay = {
+            Box(modifier = Modifier.fillMaxSize()) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) { pageIndex ->
+                    val cityCode = cityCodes[pageIndex]
+                    val cityState = state.cityStates[cityCode]
+
+                    when (cityState) {
+                        is CityWeatherUiState.Loading -> {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
                         }
-                        IconButton(
-                            onClick = onSettingsClick,
-                            modifier = modifier.align(Alignment.TopEnd).padding(vertical = 8.dp, horizontal = 4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                },
-                headerContent = {
-                    TabRow(
-                        selectedTabIndex = selectedTab,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(
-                                selected = selectedTab == index,
-                                onClick = { selectedTab = index },
-                                text = {
-                                    Text(
-                                        text = title,
-                                        color = if (selectedTab == index)
-                                            MaterialTheme.colorScheme.onSurface
-                                        else
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+
+                        is CityWeatherUiState.Error -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("Ошибка: ${cityState.message}")
+                                    Spacer(Modifier.height(8.dp))
+                                    Button(onClick = { viewModel.retryCity(cityCode) }) {
+                                        Text("Повторить")
+                                    }
                                 }
+                            }
+                        }
+
+                        is CityWeatherUiState.Success -> {
+                            WeatherContent(
+                                weather = cityState.rawData,
+                                onRefresh = { viewModel.retryCity(cityCode) },
+                                modifier = modifier.fillMaxSize()
+                            )
+                        }
+
+                        null -> {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                }
+                Box(modifier = modifier.fillMaxSize()){
+                    IconButton(
+                        onClick = onAddCityClick,
+                        modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Добавить город")
+                    }
+
+                    var expanded by remember { mutableStateOf(false) }
+                    Box(
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                    ) {
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Меню")
+                        }
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Настройки") },
+                                onClick = {
+                                    expanded = false
+                                    onSettingsClick()
+                                },
+                                colors = MenuDefaults.itemColors(
+                                    textColor = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Удалить") },
+                                onClick = {
+                                    expanded = false
+                                    viewModel.removeCity(state.selectedCityCode)
+                                },
+                                colors = MenuDefaults.itemColors(
+                                    textColor = MaterialTheme.colorScheme.onSurface
+                                )
                             )
                         }
                     }
-                },
-                panelContent = {
-                    val s = (state as WeatherUiState.Success)
-                    if (selectedTab == 0 && s.hourlyPreprocessedData != null) {
-                        PreviewWeatherTable(
-                            weatherRows = s.hourlyPreprocessedData,
-                            displaySettings = settings)
-                    }
-                    if (selectedTab == 1 && s.dailyPreprocessedData != null) {
-                        PreviewWeatherTable(
-                            weatherRows = s.dailyPreprocessedData,
-                            displaySettings = settings)
+                }
+            }
+        },
+        headerContent = {
+            TabRow(
+                selectedTabIndex = selectedTab,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = {
+                            Text(
+                                text = title,
+                                color = if (selectedTab == index)
+                                    MaterialTheme.colorScheme.onSurface
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+            }
+        },
+        panelContent = {
+            when (selectedCityState) {
+                is CityWeatherUiState.Success -> {
+                    when (selectedTab) {
+                        0 -> selectedCityState.hourlyPreprocessedData?.let {
+                            PreviewWeatherTable(it, settings)
+                        }
+
+                        1 -> selectedCityState.dailyPreprocessedData?.let {
+                            PreviewWeatherTable(it, settings)
+                        }
                     }
                 }
-            )
 
-
-        }
-        is WeatherUiState.Error -> {
-            val msg = (state as WeatherUiState.Error).message
-            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Ошибка: $msg")
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = { viewModel.loadWeather("auto") }) {
-                        Text("Повторить")
+                else -> {
+                    // Пустое место или сообщение
+                    Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        Text("Нет данных")
                     }
                 }
             }
         }
-    }
+    )
 }

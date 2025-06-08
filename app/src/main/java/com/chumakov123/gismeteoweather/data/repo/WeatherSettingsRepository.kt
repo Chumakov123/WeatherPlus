@@ -50,18 +50,6 @@ object WeatherSettingsRepository {
             }
     }
 
-    suspend fun updateEnabledRows(newSet: Set<WeatherRowType>) {
-        dataStore.edit { prefs ->
-            prefs[Keys.ENABLED_ROWS] = newSet.map { it.name }.toSet()
-        }
-    }
-
-    suspend fun updateRowOrder(newOrder: List<WeatherRowType>) {
-        dataStore.edit { prefs ->
-            prefs[Keys.ROW_ORDER] = newOrder.joinToString(",") { it.name }
-        }
-    }
-
     suspend fun updateSettings(settings: WeatherDisplaySettings) {
         dataStore.edit { prefs ->
             prefs[Keys.ENABLED_ROWS] = settings.enabledRows.map { it.name }.toSet()

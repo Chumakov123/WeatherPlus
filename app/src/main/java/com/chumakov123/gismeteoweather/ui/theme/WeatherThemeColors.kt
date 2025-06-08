@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 
 // Основная тема (для главного экрана погоды)
 private val WeatherDarkColorScheme = darkColorScheme(
-    primary = Color.White,
+    primary = Color(0xFF78909C), //Было Color.White
     secondary = Color(0xFFB0BEC5),
     tertiary = Color(0xFF78909C),
     surface = Color(0xFF073042),
