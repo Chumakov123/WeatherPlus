@@ -30,7 +30,7 @@ sealed class CityWeatherUiState {
     data class Success(
         val rawData: WeatherInfo.Available,
         val hourlyPreprocessedData: Map<WeatherRowType, WeatherRow>?,
-        val dailyPreprocessedData: Map<WeatherRowType, WeatherRow>?
+        val dailyPreprocessedData: Map<WeatherRowType, WeatherRow>?,
     ) : CityWeatherUiState()
 
     data class Error(val message: String) : CityWeatherUiState()
@@ -158,7 +158,8 @@ class WeatherViewModel(
                 }
 
             } catch (e: Exception) {
-                markCityError(cityCode, e.localizedMessage ?: "Ошибка загрузки")
+                e.printStackTrace()
+                markCityError(cityCode, "Ошибка загрузки $cityCode")
             }
         }
     }

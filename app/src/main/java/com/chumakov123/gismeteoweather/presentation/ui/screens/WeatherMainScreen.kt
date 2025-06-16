@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -134,7 +134,7 @@ fun WeatherMainScreen(
                         onClick = onAddCityClick,
                         modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Добавить город")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
 
                     var expanded by remember { mutableStateOf(false) }

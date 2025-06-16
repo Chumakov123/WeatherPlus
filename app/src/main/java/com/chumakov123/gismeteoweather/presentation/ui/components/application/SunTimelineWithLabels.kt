@@ -15,50 +15,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.chumakov123.gismeteoweather.domain.model.AstroTimes
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atTime
-import kotlinx.datetime.toInstant
 
 // Таймлайн с метками, автоматически меняющими порядок
 @Composable
 fun SunTimelineWithLabels(
-    currentTime: LocalDateTime,
     astroTimes: AstroTimes,
     modifier: Modifier = Modifier,
     lineHeight: Dp = 2.dp,
     iconSize: Dp = 24.dp,
     shadowStyle: Shadow
 ) {
-    // Определяем, что слева, а что справа
-    val afterSunset = currentTime.toInstant(TimeZone.currentSystemDefault())
-        .toEpochMilliseconds() >
-            currentTime.date.atTime(astroTimes.sunset)
-                .toInstant(TimeZone.currentSystemDefault())
-                .toEpochMilliseconds()
-
-    // Восход и заход в нужном порядке
-    val leftLabel  = if (afterSunset) "Заход" else "Восход"
-    val rightLabel = if (afterSunset) "Восход" else "Заход"
-
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Левая метка
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = astroTimes.sunrise.toString(),
+                text = astroTimes.sunriseTime.replace(", ", "\n"),
                 color = Color.White,
-                style = MaterialTheme.typography.titleSmall.copy(shadow = shadowStyle)
+                style = MaterialTheme.typography.titleSmall.copy(shadow = shadowStyle),
+                textAlign = TextAlign.Center
             )
             Text(
-                text = leftLabel,
+                text = astroTimes.sunriseCaption,
                 color = Color.White,
                 style = MaterialTheme.typography.labelSmall.copy(shadow = shadowStyle)
             )
@@ -73,25 +58,25 @@ fun SunTimelineWithLabels(
                 .height(iconSize)
         ) {
             SunTimeline(
-                currentTime = currentTime,
-                astroTimes  = astroTimes,
-                modifier    = Modifier.fillMaxWidth(),
-                iconSize    = iconSize,
-                lineHeight  = lineHeight
+                rotationDegrees = astroTimes.rotationDegrees,
+                modifier = Modifier.fillMaxWidth(),
+                iconSize = iconSize,
+                lineHeight = lineHeight
             )
         }
 
         Spacer(Modifier.width(8.dp))
 
-        // Правая метка
+        // Правая метка — восход
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = astroTimes.sunset.toString(),
+                text = astroTimes.sunsetTime.replace(", ", "\n"),
                 color = Color.White,
-                style = MaterialTheme.typography.titleSmall.copy(shadow = shadowStyle)
+                style = MaterialTheme.typography.titleSmall.copy(shadow = shadowStyle),
+                textAlign = TextAlign.Center
             )
             Text(
-                text = rightLabel,
+                text = astroTimes.sunsetCaption,
                 color = Color.White,
                 style = MaterialTheme.typography.labelSmall.copy(shadow = shadowStyle)
             )

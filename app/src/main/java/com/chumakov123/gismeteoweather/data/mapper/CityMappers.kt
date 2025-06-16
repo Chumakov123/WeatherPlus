@@ -9,6 +9,7 @@ fun CityByIpResponse.toCityInfo(): CityInfo {
     return CityInfo(
         id             = id,
         slug           = slug,
+        kind = kind,
         countryCode    = country.code,
         cityName       = ru.city.name,
         countryName    = ru.country.name,

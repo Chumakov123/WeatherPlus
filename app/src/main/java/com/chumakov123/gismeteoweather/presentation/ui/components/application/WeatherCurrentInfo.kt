@@ -66,7 +66,6 @@ fun WeatherCurrentInfo(
         Spacer(Modifier.height(8.dp))
 
         SunTimelineWithLabels(
-            currentTime = localDateTime,
             astroTimes  = astroTimes,
             shadowStyle = shadowStyle
         )

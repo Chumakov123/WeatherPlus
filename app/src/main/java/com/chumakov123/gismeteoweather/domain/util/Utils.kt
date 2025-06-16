@@ -64,6 +64,12 @@ object Utils {
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
 
+    fun LocalDateTime.toTimeString(locale: Locale = Locale.getDefault()): String {
+        val javaLDT = this.toJavaLocalDateTime()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm", locale)
+        return javaLDT.format(formatter)
+    }
+
     fun LocalDateTime.plusMillis(millis: Long): LocalDateTime {
         // 1) Конвертируем в Instant в UTC
         val instantUtc: Instant = this.toInstant(TimeZone.UTC)
@@ -89,6 +95,10 @@ object Utils {
             }
         }
         return iconString
+    }
+
+    fun formatTemperature(value: Int): String {
+        return "${if (value >= 0) "+" else ""}$value°"
     }
 
     fun formatRelativeTime(

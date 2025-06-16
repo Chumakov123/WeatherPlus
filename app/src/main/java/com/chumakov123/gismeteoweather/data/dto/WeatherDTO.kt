@@ -1,10 +1,8 @@
 package com.chumakov123.gismeteoweather.data.dto
 
-import com.chumakov123.gismeteoweather.R
 import com.chumakov123.gismeteoweather.domain.model.CurrentWeatherData
 import com.chumakov123.gismeteoweather.domain.model.WeatherData
 import com.chumakov123.gismeteoweather.domain.util.Utils.normalizeIconString
-import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 import com.chumakov123.gismeteoweather.domain.util.WindDirections
 import com.chumakov123.gismeteoweather.domain.util.WindDirections.windDirections
 import kotlinx.serialization.Serializable

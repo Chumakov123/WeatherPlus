@@ -118,6 +118,7 @@ object WeatherRepo {
         return WeatherInfo.Available(
             placeCode = cityCode,
             placeName = dateAndCity!!.cityName,
+            placeKind = dateAndCity.cityKind,
             localTime = dateAndCity.localDateTime,
             now = nowWeather!!,
             hourly = hourly,

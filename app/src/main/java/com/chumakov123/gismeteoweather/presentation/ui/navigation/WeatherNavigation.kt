@@ -24,7 +24,7 @@ import com.chumakov123.gismeteoweather.presentation.ui.screens.WeatherMainScreen
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewModel
 
 object WeatherDestinations {
-    const val MAIN_ROUTE = "main"
+    const val WEATHER_ROUTE = "weather"
     const val SETTINGS_ROUTE = "settings"
     const val CITIES_ROUTE = "cities"
 }
@@ -33,7 +33,7 @@ object WeatherDestinations {
 fun WeatherNavHost(
     viewModel: WeatherViewModel,
     modifier: Modifier = Modifier,
-    startDestination: String = WeatherDestinations.MAIN_ROUTE
+    startDestination: String = WeatherDestinations.CITIES_ROUTE // <-- меняем стартовый
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -47,7 +47,7 @@ fun WeatherNavHost(
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         when (currentRoute) {
-            WeatherDestinations.MAIN_ROUTE -> {
+            WeatherDestinations.WEATHER_ROUTE -> {
                 window.statusBarColor = Color.Transparent.toArgb()
                 window.navigationBarColor = Color(0xFF073042).toArgb()
                 controller.isAppearanceLightStatusBars = false
@@ -69,33 +69,27 @@ fun WeatherNavHost(
         startDestination = startDestination,
         modifier = modifier
     ) {
-        mainScreen(viewModel, navController)
+        weatherScreen(viewModel, navController)
         settingsScreen(viewModel, navController)
-        addCityScreen(viewModel, navController)
+        citiesScreen(viewModel, navController)
     }
 }
 
-private fun NavGraphBuilder.mainScreen(
+private fun NavGraphBuilder.weatherScreen(
     viewModel: WeatherViewModel,
     navController: NavController,
 ) {
-    composable(WeatherDestinations.MAIN_ROUTE) {
+    composable(WeatherDestinations.WEATHER_ROUTE) {
         WeatherAppTheme(isMainScreen = true) {
             Scaffold { inner ->
                 WeatherMainScreen(
                     modifier = Modifier.padding(inner),
                     viewModel = viewModel,
                     onSettingsClick = {
-                        safeNavigate(
-                            navController,
-                            WeatherDestinations.SETTINGS_ROUTE
-                        )
+                        safeNavigate(navController, WeatherDestinations.SETTINGS_ROUTE)
                     },
                     onAddCityClick = {
-                        safeNavigate(
-                            navController,
-                            WeatherDestinations.CITIES_ROUTE
-                        )
+                        safePopBack(navController)
                     },
                 )
             }
@@ -107,7 +101,6 @@ private fun NavGraphBuilder.settingsScreen(
     viewModel: WeatherViewModel,
     navController: NavController,
 ) {
-
     composable(WeatherDestinations.SETTINGS_ROUTE) {
         WeatherAppTheme(isMainScreen = false) {
             SettingsScreen(
@@ -118,7 +111,7 @@ private fun NavGraphBuilder.settingsScreen(
     }
 }
 
-private fun NavGraphBuilder.addCityScreen(
+private fun NavGraphBuilder.citiesScreen(
     viewModel: WeatherViewModel,
     navController: NavController
 ) {
@@ -126,12 +119,9 @@ private fun NavGraphBuilder.addCityScreen(
         WeatherAppTheme(isMainScreen = false) {
             CitiesScreen(
                 viewModel = viewModel,
-                onBackClick = { safePopBack(navController) },
-                onSettingsClick = {
-                    safeNavigate(
-                        navController,
-                        WeatherDestinations.SETTINGS_ROUTE
-                    )
+                onSettingsClick = { safeNavigate(navController, WeatherDestinations.SETTINGS_ROUTE) },
+                onCitySelected = {
+                    safeNavigate(navController, WeatherDestinations.WEATHER_ROUTE)
                 }
             )
         }

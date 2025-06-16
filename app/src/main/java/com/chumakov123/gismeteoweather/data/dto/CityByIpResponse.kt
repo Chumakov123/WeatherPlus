@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 data class CityByIpResponse(
     val id: Int,
     val slug: String,
+    val kind: String,
     val country: Country,
     val translations: Translations
 )

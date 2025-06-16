@@ -1,6 +1,5 @@
 package com.chumakov123.gismeteoweather.data.remote
 
-import com.chumakov123.gismeteoweather.R
 import com.chumakov123.gismeteoweather.data.dto.DateAndCityDTO
 import com.chumakov123.gismeteoweather.data.dto.WeatherRawDTO
 import com.chumakov123.gismeteoweather.domain.model.AstroTimes
@@ -9,10 +8,8 @@ import com.chumakov123.gismeteoweather.domain.model.WeatherIconInfo
 import com.chumakov123.gismeteoweather.domain.model.WindData
 import com.chumakov123.gismeteoweather.domain.util.Utils.fahrenheitToCelsius
 import com.chumakov123.gismeteoweather.domain.util.Utils.normalizeIconString
-import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
@@ -103,27 +100,31 @@ object GismeteoWeatherHtmlParser {
     }
 
     fun parseAstroTimes(doc: Document): AstroTimes? {
-        val sunriseText = doc.selectFirst(".now-astro-sunrise .time")?.text()
-        val sunsetText  = doc.selectFirst(".now-astro-sunset .time")?.text()
+        val sunriseEl = doc.selectFirst(".now-astro-sunrise")
+        val sunsetEl = doc.selectFirst(".now-astro-sunset")
+        val lineEl = doc.selectFirst(".now-astro-line")
 
-        if (sunriseText == null || sunsetText == null) return null
+        val sunriseTime = sunriseEl?.selectFirst(".time")?.text() ?: return null
+        val sunsetTime = sunsetEl?.selectFirst(".time")?.text() ?: return null
+        val sunriseCaption = sunriseEl.selectFirst(".caption")?.text() ?: "Восход"
+        val sunsetCaption = sunsetEl.selectFirst(".caption")?.text() ?: "Заход"
 
-        val sunriseParts = sunriseText.split(":")
-        val sunsetParts  = sunsetText.split(":")
+        val rotationStyle = lineEl?.attr("style")
+        val rotationDegrees = extractRotation(rotationStyle)
 
-        if (sunriseParts.size != 2 || sunsetParts.size != 2) return null
-
-        val sunrise = LocalTime(
-            sunriseParts[0].toIntOrNull() ?: return null,
-            sunriseParts[1].toIntOrNull() ?: return null
+        return AstroTimes(
+            sunriseTime = sunriseTime,
+            sunsetTime = sunsetTime,
+            sunriseCaption = sunriseCaption,
+            sunsetCaption = sunsetCaption,
+            rotationDegrees = rotationDegrees
         )
+    }
 
-        val sunset = LocalTime(
-            sunsetParts[0].toIntOrNull() ?: return null,
-            sunsetParts[1].toIntOrNull() ?: return null
-        )
-
-        return AstroTimes(sunset = sunset, sunrise = sunrise)
+    private fun extractRotation(style: String?): Double {
+        if (style == null) return 0.0
+        val match = Regex("""rotate\((-?[\d.]+)deg\)""").find(style)
+        return match?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
     }
 
     fun parseWeatherNowFromHtml(doc: Document): WeatherRawDTO? {
@@ -180,6 +181,9 @@ object GismeteoWeatherHtmlParser {
             ?.get("name")?.jsonPrimitive?.content
             ?: return null
 
+        val cityKind = root["city"]?.jsonObject
+            ?.get("kind")?.jsonPrimitive?.content ?: "T"
+
         // Преобразуем UTC LocalDateTime в Instant
         val utcInstant = dateTime.toInstant(TimeZone.UTC)
         // Прибавляем смещение в минутах к Instant
@@ -187,7 +191,7 @@ object GismeteoWeatherHtmlParser {
         // Преобразуем обратно в LocalDateTime (можно указать TimeZone.UTC, т.к. смещение уже учтено)
         val localDateTime = localInstant.toLocalDateTime(TimeZone.UTC)
 
-        return DateAndCityDTO(localDateTime, cityName)
+        return DateAndCityDTO(localDateTime, cityName, cityKind)
     }
 
     private fun parseWeatherIcons(doc: Document): List<WeatherIconInfo> {

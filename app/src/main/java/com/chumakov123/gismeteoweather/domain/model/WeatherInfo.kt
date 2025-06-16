@@ -1,8 +1,6 @@
 package com.chumakov123.gismeteoweather.domain.model
 
-import androidx.annotation.DrawableRes
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,6 +12,7 @@ sealed interface WeatherInfo {
     data class Available(
         val placeName: String,
         val placeCode: String,
+        val placeKind: String,
         val now: CurrentWeatherData,
         val hourly: List<WeatherData>,
         val daily: List<WeatherData>,
@@ -74,8 +73,11 @@ data class CurrentWeatherData(
 
 @Serializable
 data class AstroTimes(
-    val sunset: LocalTime,
-    val sunrise: LocalTime,
+    val sunriseTime: String,
+    val sunsetTime: String,
+    val sunriseCaption: String,
+    val sunsetCaption: String,
+    val rotationDegrees: Double
 )
 
 data class WindData(

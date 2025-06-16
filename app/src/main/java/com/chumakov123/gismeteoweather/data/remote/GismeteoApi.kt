@@ -30,7 +30,6 @@ object GismeteoApi {
         limit: Int = 10
     ): List<CityInfo> = withContext(Dispatchers.IO) {
         val url = "$CITY_SEARCH_URL/${query.trim().replace(' ', '+')}/?limit=$limit"
-
         val raw = try {
             Jsoup.connect(url)
                 .ignoreContentType(true)

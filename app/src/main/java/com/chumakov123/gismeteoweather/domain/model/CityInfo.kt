@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class CityInfo(
     val id: Int,
     val slug: String,
+    val kind: String,
     val countryCode: String,
     val cityName: String,
     val countryName: String,
