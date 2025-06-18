@@ -2,6 +2,8 @@ package com.chumakov123.gismeteoweather.presentation.ui.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.chumakov123.gismeteoweather.OptionItem
+import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
 import com.chumakov123.gismeteoweather.data.repo.WeatherCityRepository
 import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
 import com.chumakov123.gismeteoweather.data.repo.WeatherSettingsRepository
@@ -78,15 +80,16 @@ class WeatherViewModel(
         }
     }
 
-    fun addCity(cityCode: String) {
+    fun addCity(cityInfo: OptionItem.CityInfo) {
         viewModelScope.launch {
-            WeatherCityRepository.addCity(cityCode)
-            currentCities = currentCities.toMutableList().apply { add(cityCode) }
-            loadCityWeather(cityCode)
+            WeatherCityRepository.addCity(cityInfo.cityCode)
+            RecentCitiesRepository.save(cityInfo)
+            currentCities = currentCities.toMutableList().apply { add(cityInfo.cityCode) }
+            loadCityWeather(cityInfo.cityCode)
 
             _uiState.update { state ->
                 state.copy(
-                    selectedCityCode = cityCode,
+                    selectedCityCode = cityInfo.cityCode,
                     cityStates = state.cityStates
                 )
             }

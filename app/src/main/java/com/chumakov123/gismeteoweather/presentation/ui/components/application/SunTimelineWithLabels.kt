@@ -58,7 +58,7 @@ fun SunTimelineWithLabels(
                 .height(iconSize)
         ) {
             SunTimeline(
-                rotationDegrees = astroTimes.rotationDegrees,
+                rotationDegrees = (if(astroTimes.sunriseCaption.contains("Заход")) -1 else 1) * astroTimes.rotationDegrees,
                 modifier = Modifier.fillMaxWidth(),
                 iconSize = iconSize,
                 lineHeight = lineHeight

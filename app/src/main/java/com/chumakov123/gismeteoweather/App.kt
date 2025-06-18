@@ -6,6 +6,7 @@ import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.request.CachePolicy
 import com.chumakov123.gismeteoweather.data.provider.DataStoreProvider
+import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
 import com.chumakov123.gismeteoweather.data.repo.WeatherCityRepository
 import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
 import com.chumakov123.gismeteoweather.data.repo.WeatherSettingsRepository
@@ -33,5 +34,6 @@ class App : Application() {
         WeatherRepo.init(dataStore)
         WeatherSettingsRepository.init(this)
         WeatherCityRepository.init(this)
+        RecentCitiesRepository.init(this)
     }
 }

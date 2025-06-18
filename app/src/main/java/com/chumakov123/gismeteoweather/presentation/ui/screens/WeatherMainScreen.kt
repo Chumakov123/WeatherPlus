@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.PreviewWeatherTable
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.SlideUpPanelContinuous
@@ -53,12 +54,9 @@ fun WeatherMainScreen(
 
     val cityCodes = state.cityStates.keys.toList()
 
-    // Если городов нет — показать кнопку добавить
     if (cityCodes.isEmpty()) {
-        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Button(onClick = onAddCityClick) {
-                Text("Добавить город")
-            }
+        LaunchedEffect(Unit) {
+            onAddCityClick()
         }
         return
     }
@@ -68,7 +66,7 @@ fun WeatherMainScreen(
         pageCount = { cityCodes.size }
     )
 
-    // Обновляем выбранный город при свайпе
+
     LaunchedEffect(pagerState.currentPage) {
         val newSelected = cityCodes.getOrNull(pagerState.currentPage)
         if (newSelected != null && newSelected != state.selectedCityCode) {
@@ -149,7 +147,7 @@ fun WeatherMainScreen(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
                             modifier = Modifier
-                                .background(MaterialTheme.colorScheme.surface)
+                                .background(Color.White)
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Настройки") },
@@ -158,7 +156,7 @@ fun WeatherMainScreen(
                                     onSettingsClick()
                                 },
                                 colors = MenuDefaults.itemColors(
-                                    textColor = MaterialTheme.colorScheme.onSurface
+                                    textColor = Color.Black
                                 )
                             )
                             DropdownMenuItem(
@@ -168,7 +166,7 @@ fun WeatherMainScreen(
                                     viewModel.removeCity(state.selectedCityCode)
                                 },
                                 colors = MenuDefaults.itemColors(
-                                    textColor = MaterialTheme.colorScheme.onSurface
+                                    textColor = Color.Black
                                 )
                             )
                         }
