@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -181,6 +182,7 @@ fun SlideUpPanelContinuous(
             ) {
                 Row(
                     modifier = Modifier
+                        .height(36.dp)
                         .fillMaxWidth()
                         .onGloballyPositioned { coords ->
                             headerHeightPx = coords.size.height.toFloat()
@@ -198,7 +200,7 @@ fun SlideUpPanelContinuous(
                                 }
                             }
                         },
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(36.dp)
                     ) {
                         val icon = if (isFullyOpen) Icons.Default.KeyboardArrowDown
                         else Icons.Default.KeyboardArrowUp
