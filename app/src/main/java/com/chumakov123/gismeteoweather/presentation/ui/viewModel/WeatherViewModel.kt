@@ -131,6 +131,45 @@ class WeatherViewModel(
     fun removeCity(cityCode: String) {
         viewModelScope.launch {
             WeatherCityRepository.removeCity(cityCode)
+
+            _uiState.update { currentState ->
+                val newCityStates = currentState.cityStates - cityCode
+                val newCitiesOrder = currentState.citiesOrder - cityCode
+
+                val newSelected = when {
+                    currentState.selectedCityCode == cityCode -> newCitiesOrder.firstOrNull() ?: ""
+                    else -> currentState.selectedCityCode
+                }
+
+                currentState.copy(
+                    selectedCityCode = newSelected,
+                    cityStates = newCityStates,
+                    citiesOrder = newCitiesOrder
+                )
+            }
+        }
+    }
+
+    fun removeCities(cityCodes: Set<String>) {
+        viewModelScope.launch {
+            println("REMOVE CITIES VIEW MODEL $cityCodes")
+            WeatherCityRepository.removeCities(cityCodes)
+
+            _uiState.update { currentState ->
+                val newCityStates = currentState.cityStates.filterKeys { it !in cityCodes }
+                val newCitiesOrder = currentState.citiesOrder.filter { it !in cityCodes }
+
+                val newSelected = when {
+                    currentState.selectedCityCode in cityCodes -> newCitiesOrder.firstOrNull() ?: ""
+                    else -> currentState.selectedCityCode
+                }
+
+                currentState.copy(
+                    selectedCityCode = newSelected,
+                    cityStates = newCityStates,
+                    citiesOrder = newCitiesOrder
+                )
+            }
         }
     }
 

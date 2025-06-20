@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,8 +41,10 @@ import com.chumakov123.gismeteoweather.data.remote.GismeteoApi
 import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.CityCard
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.CityCardShimmer
+import com.chumakov123.gismeteoweather.presentation.ui.components.application.NormalTopBar
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.SearchResultRow
-import com.chumakov123.gismeteoweather.presentation.ui.components.application.TopBarContent
+import com.chumakov123.gismeteoweather.presentation.ui.components.application.SearchTopBar
+import com.chumakov123.gismeteoweather.presentation.ui.components.application.SelectionModeTopBar
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.CityWeatherUiState
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewModel
 import kotlinx.coroutines.Job
@@ -164,27 +167,89 @@ fun CitiesScreen(
         }
     }
 
+    var selectionMode by remember { mutableStateOf(false) }
+    val selectedCities = remember { mutableStateSetOf<String>() }
+
+    fun exitSelectionMode() {
+        selectionMode = false
+        selectedCities.clear()
+    }
+
+    fun activateSearch() {
+        exitSelectionMode()
+        isSearchActive = true
+    }
+
+    fun deleteSelectedCities() {
+        viewModel.removeCities(selectedCities.toSet())
+        exitSelectionMode()
+    }
+
+    fun onCityCardClick(cityCode: String) {
+        if (selectionMode) {
+            if (selectedCities.contains(cityCode)) {
+                selectedCities.remove(cityCode)
+                if (selectedCities.isEmpty()) {
+                    exitSelectionMode()
+                }
+            } else {
+                selectedCities.add(cityCode)
+            }
+        } else {
+            viewModel.selectCity(cityCode)
+            onCitySelected()
+        }
+    }
+
+    fun onCityCardLongClick(cityCode: String) {
+        if (!isSearchActive && !selectionMode) {
+            selectionMode = true
+            selectedCities.add(cityCode)
+        }
+    }
+
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            exitSelectionMode()
+            searchTextFieldFocusRequester.requestFocus()
+        }
+    }
+
     Scaffold(
         topBar = {
-            TopBarContent(
-                isSearchActive = isSearchActive,
-                query = query,
-                onQueryChange = { query = it },
-                onCancel = {
-                    isSearchActive = false
-                    query = ""
-                    options = buildDefaultOptions()
-                },
-                onClear = { query = "" },
-                onSearchActivate = { isSearchActive = true },
-                onSettingsClick = onSettingsClick,
-                focusRequester = searchTextFieldFocusRequester
-            )
+            when {
+                selectionMode -> {
+                    SelectionModeTopBar(
+                        selectedCount = selectedCities.size,
+                        onDeleteClick = { deleteSelectedCities() },
+                        onCancelClick = { exitSelectionMode() }
+                    )
+                }
+                isSearchActive -> {
+                    SearchTopBar(
+                        query = query,
+                        onQueryChange = { query = it },
+                        onCancel = {
+                            isSearchActive = false
+                            query = ""
+                            options = buildDefaultOptions()
+                        },
+                        onClear = { query = "" },
+                        focusRequester = searchTextFieldFocusRequester
+                    )
+                }
+                else -> {
+                    NormalTopBar(
+                        onSearchActivate = { activateSearch() },
+                        onSettingsClick = onSettingsClick
+                    )
+                }
+            }
         },
         floatingActionButton = {
-            if (!isSearchActive) {
+            if (!isSearchActive && !selectionMode) {
                 FloatingActionButton(
-                    onClick = { isSearchActive = true },
+                    onClick = { activateSearch() },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
@@ -233,13 +298,9 @@ fun CitiesScreen(
                                         CityCard(
                                             cityState = cityState,
                                             nowMillis = nowMillis,
-                                            onClick = {
-                                                viewModel.selectCity(cityCode)
-                                                onCitySelected()
-                                            },
-                                            onRemove = {
-                                                viewModel.removeCity(cityCode)
-                                            },
+                                            isSelected = selectionMode && selectedCities.contains(cityCode),
+                                            onClick = { onCityCardClick(cityCode) },
+                                            onLongClick = { onCityCardLongClick(cityCode) },
                                             dragHandleModifier = Modifier.draggableHandle()
                                         )
                                     }
@@ -260,14 +321,32 @@ fun CitiesScreen(
                         }
                     }
                 } else {
-                    items(options) { item ->
-                        if (item is OptionItem.CityInfo) {
-                            SearchResultRow(item) {
-                                viewModel.addCity(item)
-                                isSearchActive = false
-                                query = ""
+                    if (options.isEmpty() && query.isNotBlank()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillParentMaxSize()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Ничего не найдено",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
                             }
-                            HorizontalDivider()
+                        }
+                    } else {
+                        items(options) { item ->
+                            if (item is OptionItem.CityInfo) {
+                                SearchResultRow(item) {
+                                    viewModel.addCity(item)
+                                    isSearchActive = false
+                                    query = ""
+                                }
+                                HorizontalDivider()
+                            }
                         }
                     }
                 }
@@ -275,3 +354,6 @@ fun CitiesScreen(
         }
     }
 }
+
+
+

@@ -78,6 +78,28 @@ object WeatherCityRepository {
         }
     }
 
+    suspend fun removeCities(cityCodes: Set<String>) {
+        dataStore.edit { prefs ->
+            val currentList = prefs[Keys.CITY_LIST]
+                ?.split(",")
+                ?.filter { it.isNotBlank() }
+                ?.toMutableList() ?: mutableListOf()
+
+            val codesToRemove = cityCodes.toHashSet()
+            val newList = currentList.filterNot { it in codesToRemove }
+            val removedAny = newList.size != currentList.size
+
+            if (removedAny) {
+                prefs[Keys.CITY_LIST] = newList.joinToString(",")
+
+                val currentSelected = prefs[Keys.SELECTED_CITY]
+                if (currentSelected in cityCodes) {
+                    prefs[Keys.SELECTED_CITY] = newList.firstOrNull().orEmpty()
+                }
+            }
+        }
+    }
+
     suspend fun updateOrder(newOrder: List<String>) {
         dataStore.edit { prefs ->
             val filtered = newOrder.filter { it.isNotBlank() }
