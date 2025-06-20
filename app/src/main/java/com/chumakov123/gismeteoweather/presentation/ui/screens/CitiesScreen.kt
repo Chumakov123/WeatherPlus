@@ -32,6 +32,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.chumakov123.gismeteoweather.OptionItem
@@ -82,6 +83,13 @@ fun CitiesScreen(
     val coroutineScope = rememberCoroutineScope()
 
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
+    val searchTextFieldFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            searchTextFieldFocusRequester.requestFocus()
+        }
+    }
 
     fun buildDefaultOptions() = buildList {
         add(OptionItem.Auto)
@@ -169,7 +177,8 @@ fun CitiesScreen(
                 },
                 onClear = { query = "" },
                 onSearchActivate = { isSearchActive = true },
-                onSettingsClick = onSettingsClick
+                onSettingsClick = onSettingsClick,
+                focusRequester = searchTextFieldFocusRequester
             )
         },
         floatingActionButton = {

@@ -17,6 +17,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,7 +30,8 @@ fun TopBarContent(
     onCancel: () -> Unit,
     onClear: () -> Unit,
     onSearchActivate: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    focusRequester: FocusRequester
 ) {
     val textStyle = MaterialTheme.typography.bodyLarge
     TopAppBar(
@@ -41,7 +44,7 @@ fun TopBarContent(
                     onValueChange = onQueryChange,
                     placeholder = { Text("Поиск местоположения", style = textStyle) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                     trailingIcon = {
                         if (query.isNotBlank()) {
                             IconButton(onClick = onClear) {
