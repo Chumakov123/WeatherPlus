@@ -2,13 +2,13 @@ package com.chumakov123.gismeteoweather.presentation.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -25,8 +25,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -35,15 +38,19 @@ import com.chumakov123.gismeteoweather.OptionItem
 import com.chumakov123.gismeteoweather.data.remote.GismeteoApi
 import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.CityCard
+import com.chumakov123.gismeteoweather.presentation.ui.components.application.CityCardShimmer
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.SearchResultRow
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.TopBarContent
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.CityWeatherUiState
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
-//TODO Экран городов
 @Composable
 fun CitiesScreen(
     viewModel: WeatherViewModel,
@@ -51,14 +58,22 @@ fun CitiesScreen(
     onCitySelected: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val addedCitiesFromVm = uiState.citiesOrder
+
+    val localOrder = rememberSaveable(
+        saver = listSaver(
+            save = { it.toList() },
+            restore = { it.toMutableStateList() }
+        )
+    ) { addedCitiesFromVm.toMutableStateList() }
+
     val nowMillis by produceState(initialValue = System.currentTimeMillis(), key1 = Unit) {
         while (true) {
             value = System.currentTimeMillis()
             delay(2_500L)
         }
     }
-    val uiState by viewModel.uiState.collectAsState()
-    val addedCities = uiState.cityStates.keys.toList()
 
     var query by rememberSaveable { mutableStateOf("") }
     var options by remember { mutableStateOf<List<OptionItem>>(emptyList()) }
@@ -78,6 +93,31 @@ fun CitiesScreen(
         isSearchActive = false
         query = ""
         options = buildDefaultOptions()
+    }
+
+    LaunchedEffect(addedCitiesFromVm) {
+        localOrder.clear()
+        localOrder.addAll(addedCitiesFromVm)
+    }
+
+    val lazyListState = rememberLazyListState()
+    val reorderState = rememberReorderableLazyListState(
+        lazyListState = lazyListState,
+        onMove = { from, to ->
+            localOrder.add(to.index, localOrder.removeAt(from.index))
+        },
+    )
+
+    LaunchedEffect(reorderState) {
+        snapshotFlow { reorderState.isAnyItemDragging }
+            .distinctUntilChanged()
+            .filter { isDragging -> !isDragging }
+            .collect {
+                if (localOrder.isNotEmpty()) {
+                    viewModel.updateCityOrder(localOrder.toList())
+
+                }
+            }
     }
 
     LaunchedEffect(Unit) {
@@ -145,65 +185,81 @@ fun CitiesScreen(
         },
         modifier = modifier
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 16.dp)
-        ) {
-            if (!isSearchActive) {
-                if (addedCities.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillParentMaxSize()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Чтобы добавить сюда новый пункт, нажмите на плюс в правом нижнем углу",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            if (!isSearchActive && addedCitiesFromVm.isNotEmpty()) {
+                Text(
+                    text = "Мои пункты",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                )
+            }
+            LazyColumn(
+                state = lazyListState,
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                if (!isSearchActive) {
+                    if (addedCitiesFromVm.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillParentMaxSize()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Чтобы добавить сюда новый пункт, нажмите на плюс в правом нижнем углу",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        items(items = localOrder, key = {it}) { cityCode ->
+                            ReorderableItem(reorderState, key = cityCode) {
+                                when (val cityState = uiState.cityStates[cityCode]) {
+                                    is CityWeatherUiState.Success -> {
+                                        CityCard(
+                                            cityState = cityState,
+                                            nowMillis = nowMillis,
+                                            onClick = {
+                                                viewModel.selectCity(cityCode)
+                                                onCitySelected()
+                                            },
+                                            onRemove = {
+                                                viewModel.removeCity(cityCode)
+                                            },
+                                            dragHandleModifier = Modifier.draggableHandle()
+                                        )
+                                    }
+
+                                    is CityWeatherUiState.Loading -> {
+                                        CityCardShimmer()
+                                    }
+
+                                    is CityWeatherUiState.Error -> {
+                                        // Text("Ошибка загрузки города")
+                                    }
+
+                                    null -> {
+                                        // Пока нет состояния — можно ничего не показывать или отобразить пустой spacer
+                                    }
+                                }
+                            }
                         }
                     }
                 } else {
-                    item {
-                        Text(
-                            text = "Мои пункты",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                        )
-                    }
-
-                    items(addedCities) { cityCode ->
-                        val cityState = uiState.cityStates[cityCode] as? CityWeatherUiState.Success ?: return@items
-                        CityCard(
-                            cityState = cityState,
-                            nowMillis = nowMillis,
-                            onClick = {
-                                viewModel.selectCity(cityCode)
-                                onCitySelected()
-                            },
-                            onRemove = {
-                                viewModel.removeCity(cityCode)
+                    items(options) { item ->
+                        if (item is OptionItem.CityInfo) {
+                            SearchResultRow(item) {
+                                viewModel.addCity(item)
+                                isSearchActive = false
+                                query = ""
                             }
-                        )
-                    }
-
-                    item { Spacer(Modifier.height(16.dp)) }
-                }
-            } else {
-                items(options) { item ->
-                    if (item is OptionItem.CityInfo) {
-                        SearchResultRow(item) {
-                            viewModel.addCity(item)
-                            isSearchActive = false
-                            query = ""
+                            HorizontalDivider()
                         }
-                        HorizontalDivider()
                     }
                 }
             }

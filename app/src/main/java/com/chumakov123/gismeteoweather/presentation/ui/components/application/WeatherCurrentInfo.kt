@@ -1,13 +1,16 @@
 package com.chumakov123.gismeteoweather.presentation.ui.components.application
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,8 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import com.chumakov123.gismeteoweather.R
 import com.chumakov123.gismeteoweather.domain.model.AstroTimes
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.util.Utils.toDayDateTimeString
@@ -34,7 +41,8 @@ fun WeatherCurrentInfo(
     description: String,
     weather: WeatherInfo.Available,
     onRefresh: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeKind: String
 ) {
     Column(
         modifier = modifier
@@ -51,11 +59,30 @@ fun WeatherCurrentInfo(
             )
         }
 
-        Text(
-            text  = placeName,
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge.copy(shadow = shadowStyle)
-        )
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            val iconRes = when (placeKind) {
+                //"M" -> R.drawable.compound_station
+                "A" -> R.drawable.compound_airport
+                else -> null
+            }
+            iconRes?.let {
+                Image(
+                    imageVector = ImageVector.vectorResource(it),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 4.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
+            Text(
+                text  = placeName,
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge.copy(shadow = shadowStyle)
+            )
+        }
+
         Spacer(Modifier.height(8.dp))
 
         Text(

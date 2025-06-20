@@ -102,6 +102,7 @@ fun SettingsScreen(
             state = lazyListState,
             modifier = Modifier
                 .padding(innerPadding)
+                .padding(vertical = 8.dp)
                 .fillMaxSize()
         ) {
             items(

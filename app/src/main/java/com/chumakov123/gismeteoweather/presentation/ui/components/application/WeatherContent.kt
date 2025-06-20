@@ -32,6 +32,7 @@ fun WeatherContent(
     Box(modifier = Modifier.fillMaxSize()) {
         WeatherBackground(iconWeather = weather.now.iconWeather)
         WeatherCurrentInfo(
+            placeKind      = weather.placeKind,
             placeName      = weather.placeName,
             localDateTime  = localDateTime,
             astroTimes     = weather.astroTimes,

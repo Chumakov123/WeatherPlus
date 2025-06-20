@@ -1,6 +1,7 @@
 package com.chumakov123.gismeteoweather.presentation.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.PreviewWeatherTable
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.SlideUpPanelContinuous
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.WeatherContent
@@ -52,7 +54,7 @@ fun WeatherMainScreen(
     val state by viewModel.uiState.collectAsState()
     val settings by viewModel.settings.collectAsState()
 
-    val cityCodes = state.cityStates.keys.toList()
+    val cityCodes = state.citiesOrder
 
     if (cityCodes.isEmpty()) {
         LaunchedEffect(Unit) {
@@ -78,6 +80,8 @@ fun WeatherMainScreen(
     val tabs = listOf("По часам", "По дням")
 
     val selectedCityState = state.cityStates[state.selectedCityCode]
+
+    val updatingCities by viewModel.updatingCities.collectAsState()
 
     SlideUpPanelContinuous(
         overlay = {
@@ -168,6 +172,21 @@ fun WeatherMainScreen(
                                 colors = MenuDefaults.itemColors(
                                     textColor = Color.Black
                                 )
+                            )
+                        }
+                    }
+                }
+                if (selectedCityState is CityWeatherUiState.Success) {
+                    if (!WeatherRepo.isActual(selectedCityState.rawData.updateTime)) {
+                        if (updatingCities.contains(selectedCityState.rawData.placeCode)) {
+                            Text("Обновление...", modifier = Modifier.align(Alignment.TopCenter).padding(16.dp))
+                        } else {
+                            Text(
+                                "Обновить",
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .padding(16.dp)
+                                    .clickable(onClick = { viewModel.loadWeatherForAllCities()})
                             )
                         }
                     }

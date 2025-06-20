@@ -78,6 +78,23 @@ object WeatherCityRepository {
         }
     }
 
+    suspend fun updateOrder(newOrder: List<String>) {
+        dataStore.edit { prefs ->
+            val filtered = newOrder.filter { it.isNotBlank() }
+
+            if (filtered.isNotEmpty()) {
+                prefs[Keys.CITY_LIST] = filtered.joinToString(",")
+                val currentSelected = prefs[Keys.SELECTED_CITY]
+                if (currentSelected !in filtered) {
+                    prefs[Keys.SELECTED_CITY] = filtered.firstOrNull().orEmpty()
+                }
+            } else {
+                prefs.remove(Keys.CITY_LIST)
+                prefs.remove(Keys.SELECTED_CITY)
+            }
+        }
+    }
+
     suspend fun updateSelectedCity(cityCode: String) {
         dataStore.edit { prefs ->
             val currentList = prefs[Keys.CITY_LIST]

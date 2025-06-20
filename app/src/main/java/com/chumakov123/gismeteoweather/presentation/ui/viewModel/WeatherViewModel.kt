@@ -13,18 +13,22 @@ import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherRow
 import com.chumakov123.gismeteoweather.domain.model.WeatherRowType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class WeatherUiState(
     val selectedCityCode: String,
-    val cityStates: Map<String, CityWeatherUiState>
+    val cityStates: Map<String, CityWeatherUiState>,
+    val citiesOrder: List<String>
 )
 
 sealed class CityWeatherUiState {
@@ -41,6 +45,9 @@ sealed class CityWeatherUiState {
 class WeatherViewModel(
     private val repo: WeatherRepo = WeatherRepo
 ) : ViewModel() {
+    private val _updatingCities = MutableStateFlow<Set<String>>(emptySet())
+    val updatingCities = _updatingCities.asStateFlow()
+
     val settings: StateFlow<WeatherDisplaySettings> =
         WeatherSettingsRepository.settingsFlow
             .stateIn(
@@ -55,28 +62,60 @@ class WeatherViewModel(
         }
     }
 
+    fun updateCityOrder(newOrder: List<String>) {
+        viewModelScope.launch {
+            WeatherCityRepository.updateOrder(newOrder)
+        }
+    }
+
     private val _uiState = MutableStateFlow(
         WeatherUiState(
             selectedCityCode = "",
-            cityStates = emptyMap()
+            cityStates = emptyMap(),
+            citiesOrder = emptyList()
         )
     )
     val uiState: StateFlow<WeatherUiState> = _uiState.asStateFlow()
 
-    private var currentCities = listOf<String>()
+    private var isInitialLoad = true
 
     init {
         viewModelScope.launch {
-            val settings = WeatherCityRepository.citySettingsFlow.first()
-            currentCities = settings.cityList
-            val selected = settings.selectedCity.takeIf { it in currentCities } ?: currentCities.firstOrNull()
+            WeatherCityRepository.citySettingsFlow
+                .collect { settings ->
+                    val selected = settings.selectedCity.takeIf { it in settings.cityList }
+                        ?: settings.cityList.firstOrNull()
 
-            if (selected != null) {
-                _uiState.value = _uiState.value.copy(selectedCityCode = selected)
-                currentCities.forEach { city ->
-                    loadCityWeather(city)
+                    if (selected != null) {
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                selectedCityCode = selected,
+                                citiesOrder = settings.cityList,
+                                cityStates = currentState.cityStates
+                                    .filterKeys { it in settings.cityList }
+                            )
+                        }
+
+                        if (isInitialLoad) {
+                            loadWeatherForAllCities()
+                            isInitialLoad = false
+                        }
+                    }
                 }
-            }
+        }
+    }
+
+    fun loadWeatherForAllCities() {
+        viewModelScope.launch {
+            uiState.value.citiesOrder.map { city ->
+                async { loadCityWeatherSuspend(city) }
+            }.awaitAll()
+        }
+    }
+
+    private fun launchLoad(cityCode: String) {
+        viewModelScope.launch {
+            loadCityWeatherSuspend(cityCode)
         }
     }
 
@@ -84,44 +123,19 @@ class WeatherViewModel(
         viewModelScope.launch {
             WeatherCityRepository.addCity(cityInfo.cityCode)
             RecentCitiesRepository.save(cityInfo)
-            currentCities = currentCities.toMutableList().apply { add(cityInfo.cityCode) }
-            loadCityWeather(cityInfo.cityCode)
 
-            _uiState.update { state ->
-                state.copy(
-                    selectedCityCode = cityInfo.cityCode,
-                    cityStates = state.cityStates
-                )
-            }
+            loadCityWeatherSuspend(cityInfo.cityCode)
         }
     }
 
     fun removeCity(cityCode: String) {
         viewModelScope.launch {
             WeatherCityRepository.removeCity(cityCode)
-
-            val newCityList = currentCities.toMutableList().apply { remove(cityCode) }
-            currentCities = newCityList
-
-            _uiState.update { state ->
-                val newCityStates = state.cityStates - cityCode
-
-                val newSelected = when {
-                    state.selectedCityCode == cityCode -> newCityList.firstOrNull().orEmpty()
-                    else -> state.selectedCityCode
-                }
-
-                state.copy(
-                    selectedCityCode = newSelected,
-                    cityStates = newCityStates
-                )
-            }
         }
     }
 
-
     fun selectCity(cityCode: String) {
-        if (cityCode !in currentCities) return
+        if (cityCode !in uiState.value.citiesOrder) return
 
         _uiState.update {
             it.copy(selectedCityCode = cityCode)
@@ -133,50 +147,70 @@ class WeatherViewModel(
     }
 
     fun retryCity(cityCode: String) {
-        loadCityWeather(cityCode)
+        launchLoad(cityCode)
     }
 
-    private fun loadCityWeather(cityCode: String) {
-        _uiState.update {
-            it.copy(
-                cityStates = it.cityStates + (cityCode to CityWeatherUiState.Loading)
-            )
+    private suspend fun loadCityWeatherSuspend(cityCode: String) {
+        withContext(Dispatchers.Main) {
+            _uiState.update {
+                it.copy(cityStates = it.cityStates + (cityCode to CityWeatherUiState.Loading))
+            }
+            _updatingCities.update { it + cityCode }
         }
 
-        viewModelScope.launch {
-            try {
-                val cached = repo.getWeatherInfo(cityCode, allowStale = true)
-                if (cached !is WeatherInfo.Available) {
-                    markCityError(cityCode, "Нет данных")
-                    return@launch
+        try {
+            val cached = withContext(Dispatchers.IO) {
+                repo.getWeatherInfo(cityCode, allowStale = true)
+            }
+            if (cached !is WeatherInfo.Available) {
+                withContext(Dispatchers.Main) {
+                    markCityError(cityCode, "Не удалось получить данные")
                 }
+                return
+            }
 
-                applyWeather(cityCode, cached)
+            val hourly = withContext(Dispatchers.Default) {
+                WeatherDataPreprocessor.preprocess(cached.hourly, ForecastMode.ByHours, cached.localTime)
+            }
+            val daily = withContext(Dispatchers.Default) {
+                WeatherDataPreprocessor.preprocess(cached.daily, ForecastMode.ByDays, cached.localTime)
+            }
 
-                if (!WeatherRepo.isActual(cached.updateTime)) {
-                    val fresh = repo.getWeatherInfo(cityCode, allowStale = false)
-                    if (fresh is WeatherInfo.Available && fresh.updateTime != cached.updateTime) {
-                        applyWeather(cityCode, fresh)
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(cityStates = it.cityStates + (cityCode to
+                            CityWeatherUiState.Success(cached, hourly, daily)))
+                }
+            }
+
+            if (!WeatherRepo.isActual(cached.updateTime)) {
+                val fresh = withContext(Dispatchers.IO) {
+                    repo.getWeatherInfo(cityCode, allowStale = false)
+                }
+                if (fresh is WeatherInfo.Available && fresh.updateTime != cached.updateTime) {
+                    val h2 = withContext(Dispatchers.Default) {
+                        WeatherDataPreprocessor.preprocess(fresh.hourly, ForecastMode.ByHours, fresh.localTime)
+                    }
+                    val d2 = withContext(Dispatchers.Default) {
+                        WeatherDataPreprocessor.preprocess(fresh.daily, ForecastMode.ByDays, fresh.localTime)
+                    }
+                    withContext(Dispatchers.Main) {
+                        _uiState.update {
+                            it.copy(cityStates = it.cityStates + (cityCode to
+                                    CityWeatherUiState.Success(fresh, h2, d2)))
+                        }
                     }
                 }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            withContext(Dispatchers.Main) {
                 markCityError(cityCode, "Ошибка загрузки $cityCode")
             }
-        }
-    }
-
-    private fun applyWeather(cityCode: String, data: WeatherInfo.Available) {
-        val hourly = WeatherDataPreprocessor.preprocess(data.hourly, ForecastMode.ByHours, data.localTime)
-        val daily = WeatherDataPreprocessor.preprocess(data.daily, ForecastMode.ByDays, data.localTime)
-
-        val cityState = CityWeatherUiState.Success(data, hourly, daily)
-
-        _uiState.update {
-            it.copy(
-                cityStates = it.cityStates + (cityCode to cityState)
-            )
+        } finally {
+            withContext(Dispatchers.Main) {
+                _updatingCities.update { it - cityCode }
+            }
         }
     }
 
