@@ -1,12 +1,11 @@
 package com.chumakov123.gismeteoweather.presentation.ui.components.application
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
@@ -17,12 +16,13 @@ import coil.request.ImageRequest
 fun WeatherBackground(
     modifier: Modifier = Modifier,
     iconWeather: String,
-    overlayAlpha: Float = 0.1f,
+    alpha: Float = 1f,
 ) {
     // URL фона
     val bgUrl = remember(iconWeather) {
         "https://st.gismeteo.st/assets/bg-desktop-now/$iconWeather.webp"
     }
+    println(bgUrl)
 
     Box(modifier = modifier.fillMaxSize()) {
         AsyncImage(
@@ -31,14 +31,10 @@ fun WeatherBackground(
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .build(),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        // полупрозрачный чёрный скрим
-        Box(
             modifier = Modifier
-                .matchParentSize()
-                .background(Color.Black.copy(alpha = overlayAlpha))
+                .fillMaxSize()
+                .graphicsLayer { this.alpha = alpha },
+            contentScale = ContentScale.Crop
         )
     }
 }

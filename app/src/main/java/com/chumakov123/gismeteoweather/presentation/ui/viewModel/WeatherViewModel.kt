@@ -152,7 +152,6 @@ class WeatherViewModel(
 
     fun removeCities(cityCodes: Set<String>) {
         viewModelScope.launch {
-            println("REMOVE CITIES VIEW MODEL $cityCodes")
             WeatherCityRepository.removeCities(cityCodes)
 
             _uiState.update { currentState ->
@@ -190,56 +189,48 @@ class WeatherViewModel(
     }
 
     private suspend fun loadCityWeatherSuspend(cityCode: String) {
-        withContext(Dispatchers.Main) {
-            _uiState.update {
-                it.copy(cityStates = it.cityStates + (cityCode to CityWeatherUiState.Loading))
+        val previousState = _uiState.value.cityStates[cityCode]
+        val showLoadingState = previousState !is CityWeatherUiState.Success
+
+        if (showLoadingState) {
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(cityStates = it.cityStates + (cityCode to CityWeatherUiState.Loading))
+                }
             }
-            _updatingCities.update { it + cityCode }
         }
+
+        _updatingCities.update { it + cityCode }
 
         try {
             val cached = withContext(Dispatchers.IO) {
                 repo.getWeatherInfo(cityCode, allowStale = true)
             }
-            if (cached !is WeatherInfo.Available) {
+
+            if (cached is WeatherInfo.Available) {
+                if (WeatherRepo.isActual(cached.updateTime)) {
+                    if (!(!showLoadingState &&
+                        (previousState as CityWeatherUiState.Success).rawData.updateTime == cached.updateTime))
+                    { updateCityState(cityCode, cached) }
+                    return
+                }
+
+                if (!(!showLoadingState &&
+                            (previousState as CityWeatherUiState.Success).rawData.updateTime == cached.updateTime))
+                { updateCityState(cityCode, cached) }
+            } else {
                 withContext(Dispatchers.Main) {
-                    markCityError(cityCode, "Не удалось получить данные")
+                    markCityError(cityCode, "Ошибка загрузки $cityCode")
                 }
                 return
             }
 
-            val hourly = withContext(Dispatchers.Default) {
-                WeatherDataPreprocessor.preprocess(cached.hourly, ForecastMode.ByHours, cached.localTime)
-            }
-            val daily = withContext(Dispatchers.Default) {
-                WeatherDataPreprocessor.preprocess(cached.daily, ForecastMode.ByDays, cached.localTime)
+            val fresh = withContext(Dispatchers.IO) {
+                repo.getWeatherInfo(cityCode, allowStale = false)
             }
 
-            withContext(Dispatchers.Main) {
-                _uiState.update {
-                    it.copy(cityStates = it.cityStates + (cityCode to
-                            CityWeatherUiState.Success(cached, hourly, daily)))
-                }
-            }
-
-            if (!WeatherRepo.isActual(cached.updateTime)) {
-                val fresh = withContext(Dispatchers.IO) {
-                    repo.getWeatherInfo(cityCode, allowStale = false)
-                }
-                if (fresh is WeatherInfo.Available && fresh.updateTime != cached.updateTime) {
-                    val h2 = withContext(Dispatchers.Default) {
-                        WeatherDataPreprocessor.preprocess(fresh.hourly, ForecastMode.ByHours, fresh.localTime)
-                    }
-                    val d2 = withContext(Dispatchers.Default) {
-                        WeatherDataPreprocessor.preprocess(fresh.daily, ForecastMode.ByDays, fresh.localTime)
-                    }
-                    withContext(Dispatchers.Main) {
-                        _uiState.update {
-                            it.copy(cityStates = it.cityStates + (cityCode to
-                                    CityWeatherUiState.Success(fresh, h2, d2)))
-                        }
-                    }
-                }
+            if (fresh is WeatherInfo.Available) {
+                updateCityState(cityCode, fresh)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -247,8 +238,22 @@ class WeatherViewModel(
                 markCityError(cityCode, "Ошибка загрузки $cityCode")
             }
         } finally {
-            withContext(Dispatchers.Main) {
-                _updatingCities.update { it - cityCode }
+            _updatingCities.update { it - cityCode }
+        }
+    }
+
+    private suspend fun updateCityState(cityCode: String, data: WeatherInfo.Available) {
+        val hourly = withContext(Dispatchers.Default) {
+            WeatherDataPreprocessor.preprocess(data.hourly, ForecastMode.ByHours, data.localTime)
+        }
+        val daily = withContext(Dispatchers.Default) {
+            WeatherDataPreprocessor.preprocess(data.daily, ForecastMode.ByDays, data.localTime)
+        }
+
+        withContext(Dispatchers.Main) {
+            _uiState.update {
+                it.copy(cityStates = it.cityStates + (cityCode to
+                        CityWeatherUiState.Success(data, hourly, daily)))
             }
         }
     }

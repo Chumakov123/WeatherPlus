@@ -48,9 +48,11 @@ import androidx.compose.ui.unit.dp
 import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.PreviewWeatherTable
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.SlideUpPanelContinuous
+import com.chumakov123.gismeteoweather.presentation.ui.components.application.WeatherBackground
 import com.chumakov123.gismeteoweather.presentation.ui.components.application.WeatherContent
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.CityWeatherUiState
 import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewModel
+import kotlin.math.abs
 
 @Composable
 fun WeatherMainScreen(
@@ -90,6 +92,50 @@ fun WeatherMainScreen(
     val selectedCityState = state.cityStates[state.selectedCityCode]
 
     val updatingCities by viewModel.updatingCities.collectAsState()
+
+    val currentPage = pagerState.currentPage
+    val currentPageOffset = pagerState.currentPageOffsetFraction
+    val nextPage = if (currentPageOffset > 0) currentPage + 1 else currentPage - 1
+
+    val currentBg = remember(cityCodes.getOrNull(currentPage)) {
+        cityCodes.getOrNull(currentPage)?.let { code ->
+            state.cityStates[code]?.let {
+                when (it) {
+                    is CityWeatherUiState.Success -> it.rawData.now.iconWeather
+                    else -> null
+                }
+            }
+        }
+    }
+
+    val nextBg = remember(cityCodes.getOrNull(nextPage)) {
+        if (nextPage in cityCodes.indices) {
+            cityCodes[nextPage]?.let { code ->
+                state.cityStates[code]?.let {
+                    when (it) {
+                        is CityWeatherUiState.Success -> it.rawData.now.iconWeather
+                        else -> null
+                    }
+                }
+            }
+        } else null
+    }
+
+    if (nextBg != null && currentPageOffset != 0f) {
+        WeatherBackground(
+            modifier = Modifier.fillMaxSize(),
+            iconWeather = nextBg,
+            alpha = 1f
+        )
+    }
+
+    currentBg?.let { url ->
+        WeatherBackground(
+            modifier = Modifier.fillMaxSize(),
+            iconWeather = url,
+            alpha = 1f - abs(currentPageOffset)
+        )
+    }
 
     SlideUpPanelContinuous(
         overlay = {
