@@ -158,7 +158,7 @@ fun WeatherMainScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("Ошибка: ${cityState.message}")
+                                    Text(cityState.message)
                                     Spacer(Modifier.height(8.dp))
                                     Button(onClick = { viewModel.retryCity(cityCode) }) {
                                         Text("Повторить")

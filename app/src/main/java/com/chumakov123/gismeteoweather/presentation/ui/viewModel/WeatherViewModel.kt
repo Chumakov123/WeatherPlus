@@ -1,6 +1,8 @@
 package com.chumakov123.gismeteoweather.presentation.ui.viewModel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.content.Intent
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.chumakov123.gismeteoweather.OptionItem
 import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
@@ -13,6 +15,7 @@ import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherRow
 import com.chumakov123.gismeteoweather.domain.model.WeatherRowType
+import com.chumakov123.gismeteoweather.presentation.receiver.WeatherUpdateReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -43,8 +46,8 @@ sealed class CityWeatherUiState {
 }
 
 class WeatherViewModel(
-    private val repo: WeatherRepo = WeatherRepo
-) : ViewModel() {
+    application: Application,
+) : AndroidViewModel(application) {
     private val _updatingCities = MutableStateFlow<Set<String>>(emptySet())
     val updatingCities = _updatingCities.asStateFlow()
 
@@ -108,6 +111,7 @@ class WeatherViewModel(
             uiState.value.citiesOrder.map { city ->
                 async { loadCityWeatherSuspend(city) }
             }.awaitAll()
+            triggerWidgetUpdate()
         }
     }
 
@@ -210,7 +214,7 @@ class WeatherViewModel(
 
         try {
             val cached = withContext(Dispatchers.IO) {
-                repo.getWeatherInfo(cityCode, allowStale = true)
+                WeatherRepo.getWeatherInfo(cityCode, allowStale = true)
             }
 
             if (cached is WeatherInfo.Available) {
@@ -227,7 +231,7 @@ class WeatherViewModel(
             }
 
             val fresh = withContext(Dispatchers.IO) {
-                repo.getWeatherInfo(cityCode, allowStale = false)
+                WeatherRepo.getWeatherInfo(cityCode, allowStale = false)
             }
 
             if (fresh is WeatherInfo.Available) {
@@ -267,5 +271,10 @@ class WeatherViewModel(
                 )
             }
         }
+    }
+
+    private fun triggerWidgetUpdate() {
+        val intent = Intent(getApplication(), WeatherUpdateReceiver::class.java)
+        getApplication<Application>().sendBroadcast(intent)
     }
 }

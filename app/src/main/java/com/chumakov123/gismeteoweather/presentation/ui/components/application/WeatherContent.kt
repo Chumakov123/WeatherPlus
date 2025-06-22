@@ -30,7 +30,6 @@ fun WeatherContent(
         .plusMillis(nowMillis - weather.updateTime)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        //WeatherBackground(iconWeather = weather.now.iconWeather)
         WeatherCurrentInfo(
             placeKind      = weather.placeKind,
             placeName      = weather.placeName,
