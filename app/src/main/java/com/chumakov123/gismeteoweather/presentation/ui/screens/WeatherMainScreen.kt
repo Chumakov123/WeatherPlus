@@ -59,12 +59,19 @@ fun WeatherMainScreen(
     viewModel: WeatherViewModel,
     modifier: Modifier = Modifier,
     onSettingsClick: () -> Unit,
-    onAddCityClick: () -> Unit
+    onAddCityClick: () -> Unit,
+    previewCityCode: String? = null,
 ) {
+
     val state by viewModel.uiState.collectAsState()
     val settings by viewModel.settings.collectAsState()
 
-    val cityCodes = state.citiesOrder
+    val isPreviewMode = previewCityCode != null
+
+    val currentCity = previewCityCode ?: state.selectedCityCode
+    val cityCodes = if (isPreviewMode) listOf(currentCity) else state.citiesOrder
+
+    val isCityAdded = currentCity in state.citiesOrder
 
     if (cityCodes.isEmpty()) {
         LaunchedEffect(Unit) {
@@ -74,14 +81,13 @@ fun WeatherMainScreen(
     }
 
     val pagerState = rememberPagerState(
-        initialPage = cityCodes.indexOf(state.selectedCityCode).coerceAtLeast(0),
+        initialPage = cityCodes.indexOf(currentCity).coerceAtLeast(0),
         pageCount = { cityCodes.size }
     )
 
-
     LaunchedEffect(pagerState.currentPage) {
         val newSelected = cityCodes.getOrNull(pagerState.currentPage)
-        if (newSelected != null && newSelected != state.selectedCityCode) {
+        if (newSelected != null && newSelected != currentCity) {
             viewModel.selectCity(newSelected)
         }
     }
@@ -89,7 +95,7 @@ fun WeatherMainScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("По часам", "По дням")
 
-    val selectedCityState = state.cityStates[state.selectedCityCode]
+    val selectedCityState = state.cityStates[currentCity]
 
     val updatingCities by viewModel.updatingCities.collectAsState()
 
@@ -97,8 +103,17 @@ fun WeatherMainScreen(
     val currentPageOffset = pagerState.currentPageOffsetFraction
     val nextPage = if (currentPageOffset > 0) currentPage + 1 else currentPage - 1
 
-    val currentBg = remember(cityCodes.getOrNull(currentPage)) {
-        cityCodes.getOrNull(currentPage)?.let { code ->
+    val currentBg = cityCodes.getOrNull(currentPage)?.let { code ->
+        state.cityStates[code]?.let {
+            when (it) {
+                is CityWeatherUiState.Success -> it.rawData.now.iconWeather
+                else -> null
+            }
+        }
+    }
+
+    val nextBg = if (nextPage in cityCodes.indices) {
+        cityCodes[nextPage].let { code ->
             state.cityStates[code]?.let {
                 when (it) {
                     is CityWeatherUiState.Success -> it.rawData.now.iconWeather
@@ -106,36 +121,20 @@ fun WeatherMainScreen(
                 }
             }
         }
-    }
+    } else null
 
-    val nextBg = remember(cityCodes.getOrNull(nextPage)) {
-        if (nextPage in cityCodes.indices) {
-            cityCodes[nextPage]?.let { code ->
-                state.cityStates[code]?.let {
-                    when (it) {
-                        is CityWeatherUiState.Success -> it.rawData.now.iconWeather
-                        else -> null
-                    }
-                }
-            }
-        } else null
-    }
-
-    if (nextBg != null && currentPageOffset != 0f) {
+    if (currentPageOffset != 0f) {
         WeatherBackground(
             modifier = Modifier.fillMaxSize(),
             iconWeather = nextBg,
-            alpha = 1f
         )
     }
 
-    currentBg?.let { url ->
-        WeatherBackground(
-            modifier = Modifier.fillMaxSize(),
-            iconWeather = url,
-            alpha = 1f - abs(currentPageOffset)
-        )
-    }
+    WeatherBackground(
+        modifier = Modifier.fillMaxSize(),
+        iconWeather = currentBg,
+        alpha = 1f - abs(currentPageOffset)
+    )
 
     SlideUpPanelContinuous(
         overlay = {
@@ -146,9 +145,7 @@ fun WeatherMainScreen(
                         .fillMaxSize()
                 ) { pageIndex ->
                     val cityCode = cityCodes[pageIndex]
-                    val cityState = state.cityStates[cityCode]
-
-                    when (cityState) {
+                    when (val cityState = state.cityStates[cityCode]) {
                         is CityWeatherUiState.Loading -> {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator()
@@ -250,10 +247,16 @@ fun WeatherMainScreen(
                                 )
                             )
                             DropdownMenuItem(
-                                text = { Text("Удалить") },
+                                text = {
+                                    Text(if (isCityAdded) "Удалить" else "Сохранить")
+                                },
                                 onClick = {
                                     expanded = false
-                                    viewModel.removeCity(state.selectedCityCode)
+                                    if (isCityAdded) {
+                                        viewModel.removeCity(currentCity)
+                                    } else {
+                                        viewModel.addCity(currentCity)
+                                    }
                                 },
                                 colors = MenuDefaults.itemColors(
                                     textColor = Color.Black

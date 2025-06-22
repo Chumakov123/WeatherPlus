@@ -14,10 +14,12 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.chumakov123.gismeteoweather.presentation.ui.screens.CitiesScreen
 import com.chumakov123.gismeteoweather.presentation.ui.screens.SettingsScreen
 import com.chumakov123.gismeteoweather.presentation.ui.screens.WeatherMainScreen
@@ -25,6 +27,7 @@ import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewMode
 
 object WeatherDestinations {
     const val WEATHER_ROUTE = "weather"
+    const val WEATHER_PREVIEW_ROUTE = "weather_preview/{cityCode}"
     const val SETTINGS_ROUTE = "settings"
     const val CITIES_ROUTE = "cities"
 }
@@ -47,17 +50,16 @@ fun WeatherNavHost(
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         when (currentRoute) {
-            WeatherDestinations.WEATHER_ROUTE -> {
-                window.statusBarColor = Color.Transparent.toArgb()
-                window.navigationBarColor = Color(0xFF073042).toArgb()
-                controller.isAppearanceLightStatusBars = false
-                controller.isAppearanceLightNavigationBars = false
-            }
-
             WeatherDestinations.SETTINGS_ROUTE,
             WeatherDestinations.CITIES_ROUTE -> {
                 window.statusBarColor = Color(0xFF17629F).toArgb()
                 window.navigationBarColor = Color(0xFF2196F3).toArgb()
+                controller.isAppearanceLightStatusBars = false
+                controller.isAppearanceLightNavigationBars = false
+            }
+            else -> {
+                window.statusBarColor = Color.Transparent.toArgb()
+                window.navigationBarColor = Color(0xFF073042).toArgb()
                 controller.isAppearanceLightStatusBars = false
                 controller.isAppearanceLightNavigationBars = false
             }
@@ -70,6 +72,7 @@ fun WeatherNavHost(
         modifier = modifier
     ) {
         weatherScreen(viewModel, navController)
+        weatherPreviewScreen(viewModel, navController)
         settingsScreen(viewModel, navController)
         citiesScreen(viewModel, navController)
     }
@@ -91,6 +94,32 @@ private fun NavGraphBuilder.weatherScreen(
                     onAddCityClick = {
                         safePopBack(navController)
                     },
+                )
+            }
+        }
+    }
+}
+
+private fun NavGraphBuilder.weatherPreviewScreen(
+    viewModel: WeatherViewModel,
+    navController: NavController,
+) {
+    composable(WeatherDestinations.WEATHER_PREVIEW_ROUTE, arguments = listOf(navArgument("cityCode") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val cityCode = backStackEntry.arguments?.getString("cityCode") ?: ""
+
+        WeatherAppTheme(isMainScreen = true) {
+            Scaffold { inner ->
+                WeatherMainScreen(
+                    modifier = Modifier.padding(inner),
+                    viewModel = viewModel,
+                    onSettingsClick = {
+                        safeNavigate(navController, WeatherDestinations.SETTINGS_ROUTE)
+                    },
+                    onAddCityClick = {
+                        safePopBack(navController)
+                    },
+                    previewCityCode = cityCode
                 )
             }
         }
@@ -119,9 +148,18 @@ private fun NavGraphBuilder.citiesScreen(
         WeatherAppTheme(isMainScreen = false) {
             CitiesScreen(
                 viewModel = viewModel,
-                onSettingsClick = { safeNavigate(navController, WeatherDestinations.SETTINGS_ROUTE) },
+                onSettingsClick = {
+                    safeNavigate(navController, WeatherDestinations.SETTINGS_ROUTE)
+                },
                 onCitySelected = {
                     safeNavigate(navController, WeatherDestinations.WEATHER_ROUTE)
+                },
+                onCityPreview = { cityCode ->
+                    viewModel.loadCityPreview(cityCode)
+                    safeNavigate(
+                        navController,
+                        WeatherDestinations.WEATHER_PREVIEW_ROUTE.replace("{cityCode}", cityCode)
+                    )
                 }
             )
         }

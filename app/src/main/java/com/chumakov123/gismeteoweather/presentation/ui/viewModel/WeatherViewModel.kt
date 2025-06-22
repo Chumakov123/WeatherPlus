@@ -32,7 +32,7 @@ data class WeatherUiState(
 )
 
 sealed class CityWeatherUiState {
-    object Loading : CityWeatherUiState()
+    data object Loading : CityWeatherUiState()
     data class Success(
         val rawData: WeatherInfo.Available,
         val hourlyPreprocessedData: Map<WeatherRowType, WeatherRow>?,
@@ -91,8 +91,6 @@ class WeatherViewModel(
                             currentState.copy(
                                 selectedCityCode = selected,
                                 citiesOrder = settings.cityList,
-                                cityStates = currentState.cityStates
-                                    .filterKeys { it in settings.cityList }
                             )
                         }
 
@@ -119,12 +117,24 @@ class WeatherViewModel(
         }
     }
 
+    fun addCity(cityCode: String) {
+        viewModelScope.launch {
+            WeatherCityRepository.addCity(cityCode)
+            loadCityWeatherSuspend(cityCode)
+        }
+    }
+
     fun addCity(cityInfo: OptionItem.CityInfo) {
         viewModelScope.launch {
             WeatherCityRepository.addCity(cityInfo.cityCode)
             RecentCitiesRepository.save(cityInfo)
-
             loadCityWeatherSuspend(cityInfo.cityCode)
+        }
+    }
+
+    fun loadCityPreview(cityCode: String) {
+        viewModelScope.launch {
+            loadCityWeatherSuspend(cityCode)
         }
     }
 
@@ -133,7 +143,6 @@ class WeatherViewModel(
             WeatherCityRepository.removeCity(cityCode)
 
             _uiState.update { currentState ->
-                val newCityStates = currentState.cityStates - cityCode
                 val newCitiesOrder = currentState.citiesOrder - cityCode
 
                 val newSelected = when {
@@ -143,7 +152,6 @@ class WeatherViewModel(
 
                 currentState.copy(
                     selectedCityCode = newSelected,
-                    cityStates = newCityStates,
                     citiesOrder = newCitiesOrder
                 )
             }
@@ -155,7 +163,6 @@ class WeatherViewModel(
             WeatherCityRepository.removeCities(cityCodes)
 
             _uiState.update { currentState ->
-                val newCityStates = currentState.cityStates.filterKeys { it !in cityCodes }
                 val newCitiesOrder = currentState.citiesOrder.filter { it !in cityCodes }
 
                 val newSelected = when {
@@ -165,7 +172,6 @@ class WeatherViewModel(
 
                 currentState.copy(
                     selectedCityCode = newSelected,
-                    cityStates = newCityStates,
                     citiesOrder = newCitiesOrder
                 )
             }
@@ -208,16 +214,11 @@ class WeatherViewModel(
             }
 
             if (cached is WeatherInfo.Available) {
-                if (WeatherRepo.isActual(cached.updateTime)) {
-                    if (!(!showLoadingState &&
-                        (previousState as CityWeatherUiState.Success).rawData.updateTime == cached.updateTime))
-                    { updateCityState(cityCode, cached) }
-                    return
+                if (showLoadingState) {
+                    updateCityState(cityCode, cached)
                 }
-
-                if (!(!showLoadingState &&
-                            (previousState as CityWeatherUiState.Success).rawData.updateTime == cached.updateTime))
-                { updateCityState(cityCode, cached) }
+                if (WeatherRepo.isActual(cached.updateTime))
+                    return
             } else {
                 withContext(Dispatchers.Main) {
                     markCityError(cityCode, "Ошибка загрузки $cityCode")
@@ -259,10 +260,12 @@ class WeatherViewModel(
     }
 
     private fun markCityError(cityCode: String, message: String) {
-        _uiState.update {
-            it.copy(
-                cityStates = it.cityStates + (cityCode to CityWeatherUiState.Error(message))
-            )
+        if (_uiState.value.cityStates[cityCode] !is CityWeatherUiState.Success) {
+            _uiState.update {
+                it.copy(
+                    cityStates = it.cityStates + (cityCode to CityWeatherUiState.Error(message))
+                )
+            }
         }
     }
 }

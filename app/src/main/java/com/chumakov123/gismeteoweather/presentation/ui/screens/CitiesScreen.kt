@@ -55,13 +55,21 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
+enum class SearchMode {
+    ADD,
+    PREVIEW
+}
+
 @Composable
 fun CitiesScreen(
     viewModel: WeatherViewModel,
     onSettingsClick: () -> Unit,
     onCitySelected: () -> Unit,
+    onCityPreview: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var searchMode by rememberSaveable { mutableStateOf(SearchMode.PREVIEW) }
+
     val uiState by viewModel.uiState.collectAsState()
     val addedCitiesFromVm = uiState.citiesOrder
 
@@ -175,8 +183,15 @@ fun CitiesScreen(
         selectedCities.clear()
     }
 
-    fun activateSearch() {
+    fun activateAddMode() {
         exitSelectionMode()
+        searchMode = SearchMode.ADD
+        isSearchActive = true
+    }
+
+    fun activatePreviewMode() {
+        exitSelectionMode()
+        searchMode = SearchMode.PREVIEW
         isSearchActive = true
     }
 
@@ -240,7 +255,7 @@ fun CitiesScreen(
                 }
                 else -> {
                     NormalTopBar(
-                        onSearchActivate = { activateSearch() },
+                        onSearchActivate = { activatePreviewMode() },
                         onSettingsClick = onSettingsClick
                     )
                 }
@@ -249,7 +264,7 @@ fun CitiesScreen(
         floatingActionButton = {
             if (!isSearchActive && !selectionMode) {
                 FloatingActionButton(
-                    onClick = { activateSearch() },
+                    onClick = { activateAddMode() },
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
@@ -341,9 +356,16 @@ fun CitiesScreen(
                         items(options) { item ->
                             if (item is OptionItem.CityInfo) {
                                 SearchResultRow(item) {
-                                    viewModel.addCity(item)
                                     isSearchActive = false
                                     query = ""
+                                    when (searchMode) {
+                                        SearchMode.ADD -> {
+                                            viewModel.addCity(item)
+                                        }
+                                        SearchMode.PREVIEW -> {
+                                            onCityPreview(item.cityCode)
+                                        }
+                                    }
                                 }
                                 HorizontalDivider()
                             }
