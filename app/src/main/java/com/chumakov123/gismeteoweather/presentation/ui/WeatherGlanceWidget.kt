@@ -2,6 +2,7 @@ package com.chumakov123.gismeteoweather.presentation.ui
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.glance.Button
@@ -9,6 +10,7 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
@@ -27,6 +29,7 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import com.chumakov123.gismeteoweather.MainActivity
 import com.chumakov123.gismeteoweather.domain.model.ForecastMode
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherStateDefinition
@@ -113,7 +116,12 @@ fun WeatherMedium(
     isLoading: Boolean = false
 ) {
     val rows = if (appearance.showCurrentWeather) forecastRows - 1 else forecastRows
-    AppWidgetColumn(GlanceModifier.clickable(actionRunCallback<UpdateWeatherAction>()), transparencyPercent = appearance.backgroundTransparencyPercent) {
+    val cityCodeKey = ActionParameters.Key<String>("cityCode")
+    val parameters = actionParametersOf(cityCodeKey to weatherInfo.placeCode)
+    AppWidgetColumn(
+        modifier = GlanceModifier.clickable(actionRunCallback<OpenCityPreviewAction>(parameters)),
+        transparencyPercent = appearance.backgroundTransparencyPercent
+    ) {
         WidgetHeader(
             placeName       = weatherInfo.placeName,
             updateTimeText  = if (appearance.showUpdateTime) Utils.formatDateTime(weatherInfo.updateTime) else null,
@@ -161,6 +169,24 @@ fun WeatherMedium(
                 }
             }
         }
+    }
+}
+
+class OpenCityPreviewAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters
+    ) {
+        val cityCodeKey = ActionParameters.Key<String>("cityCode")
+        val cityCode = parameters[cityCodeKey] ?: return
+
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            data = Uri.parse("weatherapp://weather_preview/$cityCode")
+        }
+
+        context.startActivity(intent)
     }
 }
 

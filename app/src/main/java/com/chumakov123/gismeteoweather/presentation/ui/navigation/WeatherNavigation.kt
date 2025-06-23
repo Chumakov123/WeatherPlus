@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.chumakov123.gismeteoweather.presentation.ui.screens.CitiesScreen
 import com.chumakov123.gismeteoweather.presentation.ui.screens.SettingsScreen
 import com.chumakov123.gismeteoweather.presentation.ui.screens.WeatherMainScreen
@@ -104,9 +105,13 @@ private fun NavGraphBuilder.weatherPreviewScreen(
     viewModel: WeatherViewModel,
     navController: NavController,
 ) {
-    composable(WeatherDestinations.WEATHER_PREVIEW_ROUTE, arguments = listOf(navArgument("cityCode") { type = NavType.StringType })
+    composable(
+        WeatherDestinations.WEATHER_PREVIEW_ROUTE,
+        arguments = listOf(navArgument("cityCode") { type = NavType.StringType }),
+        deepLinks = listOf(navDeepLink { uriPattern = "weatherapp://weather_preview/{cityCode}" })
     ) { backStackEntry ->
         val cityCode = backStackEntry.arguments?.getString("cityCode") ?: ""
+        viewModel.loadCityPreview(cityCode)
 
         WeatherAppTheme(isMainScreen = true) {
             Scaffold { inner ->
@@ -155,7 +160,6 @@ private fun NavGraphBuilder.citiesScreen(
                     safeNavigate(navController, WeatherDestinations.WEATHER_ROUTE)
                 },
                 onCityPreview = { cityCode ->
-                    viewModel.loadCityPreview(cityCode)
                     safeNavigate(
                         navController,
                         WeatherDestinations.WEATHER_PREVIEW_ROUTE.replace("{cityCode}", cityCode)

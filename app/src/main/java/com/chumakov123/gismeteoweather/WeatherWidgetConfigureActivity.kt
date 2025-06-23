@@ -521,14 +521,12 @@ fun WeatherWidgetConfigureScreen(
                     Spacer(Modifier.height(8.dp))
                     LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
                         items(options) { item ->
-                            if (item is OptionItem.CityInfo) {
-                                SearchResultRow(item) {
-                                    selected = item
-                                    showLocationDialog = false
-                                    query = ""
-                                }
-                                HorizontalDivider()
+                            SearchResultRow(item) {
+                                selected = item
+                                showLocationDialog = false
+                                query = ""
                             }
+                            HorizontalDivider()
                         }
                     }
                 }

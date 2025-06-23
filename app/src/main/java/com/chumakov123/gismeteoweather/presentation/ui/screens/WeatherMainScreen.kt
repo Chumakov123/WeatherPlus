@@ -62,7 +62,6 @@ fun WeatherMainScreen(
     onAddCityClick: () -> Unit,
     previewCityCode: String? = null,
 ) {
-
     val state by viewModel.uiState.collectAsState()
     val settings by viewModel.settings.collectAsState()
 

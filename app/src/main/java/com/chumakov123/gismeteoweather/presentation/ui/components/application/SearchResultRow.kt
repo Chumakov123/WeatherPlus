@@ -20,7 +20,7 @@ import com.chumakov123.gismeteoweather.OptionItem
 import com.chumakov123.gismeteoweather.R
 
 @Composable
-fun SearchResultRow(item: OptionItem.CityInfo, onClick: () -> Unit) {
+fun SearchResultRow(item: OptionItem, onClick: () -> Unit) {
     val iconRes = when (item.cityKind) {
         "M" -> R.drawable.compound_station
         "A" -> R.drawable.compound_airport
