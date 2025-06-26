@@ -5,8 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import com.chumakov123.gismeteoweather.presentation.ui.navigation.WeatherNavHost
-import com.chumakov123.gismeteoweather.presentation.ui.viewModel.WeatherViewModel
+import com.chumakov123.gismeteoweather.presentation.navigation.WeatherNavHost
+import com.chumakov123.gismeteoweather.presentation.viewModel.WeatherViewModel
 
 class MainActivity : ComponentActivity() {
     private val weatherViewModel: WeatherViewModel by viewModels()
@@ -19,5 +19,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-

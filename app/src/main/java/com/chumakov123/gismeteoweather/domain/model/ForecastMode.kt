@@ -7,6 +7,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class ForecastMode {
-    ByHours,  // Прогноз по часам
-    ByDays    // Прогноз по дням
+    ByHours, // Прогноз по часам
+    ByDays // Прогноз по дням
 }

@@ -44,11 +44,11 @@ object GismeteoWeatherHtmlParser {
         val size = if (!hasMinValues) temperatureList.size else temperatureList.size / 2
 
         for (i in 0 until size) {
-            val tMax = if (!hasMinValues) temperatureList[i] else temperatureList[i*2]
-            val tMin = if (!hasMinValues) null else temperatureList[i*2+1]
+            val tMax = if (!hasMinValues) temperatureList[i] else temperatureList[i * 2]
+            val tMin = if (!hasMinValues) null else temperatureList[i * 2 + 1]
             val tAvg = temperatureAvgList.getOrElse(i) { 0 }
-            val tHeatIndex = if (!hasMinValues) temperatureHeatIndexList[i] else temperatureHeatIndexList[i*2]
-            val tHeatIndexMin = if (!hasMinValues) null else temperatureHeatIndexList[i*2+1]
+            val tHeatIndex = if (!hasMinValues) temperatureHeatIndexList[i] else temperatureHeatIndexList[i * 2]
+            val tHeatIndexMin = if (!hasMinValues) null else temperatureHeatIndexList[i * 2 + 1]
             val windData = windDataList.getOrElse(i) { WindData(0, "Неизвестно", 0) }
             val precipitation = precipitationList.getOrElse(i) { 0.0 }
             val humidity = humidityList.getOrElse(i) { -1 }
@@ -58,15 +58,16 @@ object GismeteoWeatherHtmlParser {
             val pollenGrass = pollenGrassList.getOrElse(i) { -1 }
             val snowHeight = snowHeightList.getOrElse(i) { -1.0 }
             val fallingSnow = fallingSnowList.getOrElse(i) { -1.0 }
-            val pressure = if (!hasMinValues) pressureList[i] else pressureList[i*2]
-            val pressureMin = if (!hasMinValues) null else pressureList[i*2+1]
+            val pressure = if (!hasMinValues) pressureList[i] else pressureList[i * 2]
+            val pressureMin = if (!hasMinValues) null else pressureList[i * 2 + 1]
             val icon = iconList.getOrElse(i) { WeatherIconInfo("Неизвестно", null, null) }
 
             var iconString =
-                if (icon.bottomLayer != null)
+                if (icon.bottomLayer != null) {
                     "${icon.topLayer}_${icon.bottomLayer}"
-                else
+                } else {
                     "${icon.topLayer}"
+                }
 
             iconString = normalizeIconString(iconString)
 
@@ -144,7 +145,7 @@ object GismeteoWeatherHtmlParser {
         )
         val outerHtml = doc.outerHtml()
         val tsMatch = tsRegex.find(outerHtml) ?: return null
-        val rawDate = tsMatch.groupValues[1]  // "2025/04/10 08:04:18"
+        val rawDate = tsMatch.groupValues[1] // "2025/04/10 08:04:18"
 
         // Разбиваем на дату и время
         val (datePart, timePart) = rawDate.split(' ')
@@ -152,13 +153,13 @@ object GismeteoWeatherHtmlParser {
         val (hourStr, minuteStr, secondStr) = timePart.split(':')
 
         val dateTime = LocalDateTime(
-            year        = yearStr.toInt(),
+            year = yearStr.toInt(),
             monthNumber = monthStr.toInt(),
-            dayOfMonth  = dayStr.toInt(),
-            hour        = hourStr.toInt(),
-            minute      = minuteStr.toInt(),
-            second      = secondStr.toInt(),
-            nanosecond  = 0
+            dayOfMonth = dayStr.toInt(),
+            hour = hourStr.toInt(),
+            minute = minuteStr.toInt(),
+            second = secondStr.toInt(),
+            nanosecond = 0
         )
 
         // Извлекаем JSON из HTML
@@ -265,8 +266,8 @@ object GismeteoWeatherHtmlParser {
         // Секция с индексом жары
         val section = doc.selectFirst(
             ".widget-row-chart" +
-                    ".widget-row-chart-temperature-heat-index" +
-                    ".row-with-caption"
+                ".widget-row-chart-temperature-heat-index" +
+                ".row-with-caption"
         ) ?: return heatIndices
 
         val hasMaxElements = section.selectFirst(".maxt temperature-value") != null
@@ -316,8 +317,8 @@ object GismeteoWeatherHtmlParser {
 
         val avgTempSection = doc.select(
             ".widget-row-chart" +
-                    ".widget-row-chart-temperature-avg" +
-                    ".row-with-caption"
+                ".widget-row-chart-temperature-avg" +
+                ".row-with-caption"
         )
 
         val avgTempElements = avgTempSection.select("temperature-value")
@@ -342,8 +343,8 @@ object GismeteoWeatherHtmlParser {
         val geomagneticValues = mutableListOf<Int>()
         val geomagneticSection = doc.select(
             ".widget-row" +
-                    ".widget-row-geomagnetic" +
-                    ".row-with-caption"
+                ".widget-row-geomagnetic" +
+                ".row-with-caption"
         )
         val geomagneticElements = geomagneticSection.select("div.row-item")
 
@@ -361,8 +362,8 @@ object GismeteoWeatherHtmlParser {
         val radiationValues = mutableListOf<Int>()
         val radiationSection = doc.select(
             ".widget-row" +
-                    ".widget-row-radiation" +
-                    ".row-with-caption"
+                ".widget-row-radiation" +
+                ".row-with-caption"
         )
         val radiationElements = radiationSection.select("div.row-item")
 
@@ -394,9 +395,9 @@ object GismeteoWeatherHtmlParser {
         val pollenValues = mutableListOf<Int>()
         val pollenSection = doc.select(
             ".widget-row" +
-                    ".widget-row-pollen" +
-                    ".row-pollen-grass" +
-                    ".row-with-caption"
+                ".widget-row-pollen" +
+                ".row-pollen-grass" +
+                ".row-with-caption"
         )
         val pollenElements = pollenSection.select("div.row-item")
 
@@ -418,9 +419,9 @@ object GismeteoWeatherHtmlParser {
         val pollenValues = mutableListOf<Int>()
         val birchSection = doc.select(
             ".widget-row" +
-                    ".widget-row-pollen" +
-                    ".row-pollen-birch" +
-                    ".row-with-caption"
+                ".widget-row-pollen" +
+                ".row-pollen-birch" +
+                ".row-with-caption"
         )
         val pollenElements = birchSection.select("div.row-item")
 
@@ -438,8 +439,8 @@ object GismeteoWeatherHtmlParser {
         val snowHeights = mutableListOf<Double>()
         val snowSection = doc.select(
             ".widget-row" +
-                    ".widget-row-icon-snow" +
-                    ".row-with-caption"
+                ".widget-row-icon-snow" +
+                ".row-with-caption"
         )
         val snowElements = snowSection.select("div.row-item")
 
@@ -468,7 +469,6 @@ object GismeteoWeatherHtmlParser {
         }
         return res
     }
-
 
     private fun parsePressureData(doc: Document): List<Int> {
         val pressures = mutableListOf<Int>()

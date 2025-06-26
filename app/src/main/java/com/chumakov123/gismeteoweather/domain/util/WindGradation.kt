@@ -7,8 +7,8 @@ object WindSpeedGradation {
     data class SpeedColorPoint(val speed: Int, val color: Color)
 
     private val speedGradient = listOf(
-        SpeedColorPoint(0,  Color.LightGray),
-        SpeedColorPoint(5,  Color.White),
+        SpeedColorPoint(0, Color.LightGray),
+        SpeedColorPoint(5, Color.White),
         SpeedColorPoint(10, Color(0xFFFFF59D)),
         SpeedColorPoint(18, Color(0xFFEF9A9A)),
         SpeedColorPoint(30, Color(0xFFEF5350))
@@ -24,7 +24,10 @@ object WindSpeedGradation {
             }
         }
 
-        return if (s < speedGradient.first().speed) speedGradient.first().color
-        else speedGradient.last().color
+        return if (s < speedGradient.first().speed) {
+            speedGradient.first().color
+        } else {
+            speedGradient.last().color
+        }
     }
 }

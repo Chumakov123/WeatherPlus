@@ -14,7 +14,6 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
-
 /**
  * Provides our own definition of "Glance state" using Kotlin serialization.
  */

@@ -38,7 +38,7 @@ android {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -67,7 +67,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
-    implementation (libs.jsoup)
+    implementation(libs.jsoup)
     implementation(libs.json)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)

@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class RuTranslation(
     val city: NameField,
     val country: NameField,
-    val district: NameField? = null,      // nullable
-    val subdistrict: NameField? = null    // nullable
+    val district: NameField? = null, // nullable
+    val subdistrict: NameField? = null // nullable
 )

@@ -199,19 +199,19 @@ object WeatherDrawables {
         12 to R.drawable.precipitation_12
     )
 
-    fun getGeomagneticDrawable(geomagnetic: Int) : Int {
+    fun getGeomagneticDrawable(geomagnetic: Int): Int {
         return geomagneticDrawables[geomagnetic.coerceIn(-1, 8)] ?: R.drawable.empty
     }
 
-    fun getScale5Drawable(index: Int) : Int {
+    fun getScale5Drawable(index: Int): Int {
         return scale5Drawables[index.coerceIn(0, 5)] ?: R.drawable.empty
     }
 
-    fun getScale8Drawable(index: Int) : Int {
+    fun getScale8Drawable(index: Int): Int {
         return scale8Drawables[index.coerceIn(0, 8)] ?: R.drawable.empty
     }
 
-    fun getScale10Drawable(index: Int) : Int {
+    fun getScale10Drawable(index: Int): Int {
         return scale10Drawables[index.coerceIn(0, 10)] ?: R.drawable.empty
     }
 

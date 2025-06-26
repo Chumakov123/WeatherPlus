@@ -37,7 +37,7 @@
         </activity>
 
         <receiver
-            android:name=".presentation.receiver.WeatherGlanceWidgetReceiver"
+            android:name=".presentation.widget.receiver.WeatherGlanceWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -50,10 +50,10 @@
         </receiver>
 
         <receiver
-            android:name=".presentation.receiver.WeatherUpdateReceiver"
+            android:name=".presentation.widget.receiver.WeatherUpdateReceiver"
             android:exported="false" />
 
-        <receiver android:name=".presentation.receiver.BootReceiver"
+        <receiver android:name=".presentation.widget.receiver.BootReceiver"
             android:exported="true"
             android:enabled="true">
             <intent-filter>
@@ -62,7 +62,7 @@
         </receiver>
 
         <activity
-            android:name=".WeatherWidgetConfigureActivity"
+            android:name=".presentation.features.widgetconfigure.WeatherWidgetConfigureActivity"
             android:exported="true"
             android:theme="@style/Theme.GismeteoWeather"
             android:screenOrientation="portrait">

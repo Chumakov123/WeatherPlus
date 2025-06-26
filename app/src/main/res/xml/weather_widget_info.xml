@@ -15,7 +15,7 @@
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/glance_default_loading_layout"
     android:widgetCategory="home_screen"
-    android:configure="com.chumakov123.gismeteoweather.WeatherWidgetConfigureActivity"
+    android:configure="com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.WeatherWidgetConfigureActivity"
     />
 
     <!--    android:maxResizeHeight="240dp"-->

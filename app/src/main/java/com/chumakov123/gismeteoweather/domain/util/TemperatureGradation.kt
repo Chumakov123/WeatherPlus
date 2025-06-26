@@ -11,11 +11,11 @@ object TemperatureGradation {
         TempColorPoint(-30, Color(0xFF2196F3)),
         TempColorPoint(-20, Color(0xFF64B5F6)),
         TempColorPoint(-10, Color(0xFF81D4FA)),
-        TempColorPoint(0,   Color.White),
-        TempColorPoint(10,  Color(0xFFA5D6A7)),
-        TempColorPoint(20,  Color(0xFFE6EE9C)),
-        TempColorPoint(30,  Color(0xFFE57373)),
-        TempColorPoint(40,  Color(0xFFE53935))
+        TempColorPoint(0, Color.White),
+        TempColorPoint(10, Color(0xFFA5D6A7)),
+        TempColorPoint(20, Color(0xFFE6EE9C)),
+        TempColorPoint(30, Color(0xFFE57373)),
+        TempColorPoint(40, Color(0xFFE53935))
     )
 
     private val tempGradientLight = listOf(
@@ -23,11 +23,11 @@ object TemperatureGradation {
         TempColorPoint(-30, Color(0xFF1976D2)),
         TempColorPoint(-20, Color(0xFF42A5F5)),
         TempColorPoint(-10, Color(0xFF4FC3F7)),
-        TempColorPoint(0,   Color(0xFF60B704)), // тёмно-серый вместо белого
-        TempColorPoint(10,  Color(0xFF388E3C)),
-        TempColorPoint(20,  Color(0xFFFBC02D)),
-        TempColorPoint(30,  Color(0xFFEF5350)),
-        TempColorPoint(40,  Color(0xFFD32F2F))
+        TempColorPoint(0, Color(0xFF60B704)), // тёмно-серый вместо белого
+        TempColorPoint(10, Color(0xFF388E3C)),
+        TempColorPoint(20, Color(0xFFFBC02D)),
+        TempColorPoint(30, Color(0xFFEF5350)),
+        TempColorPoint(40, Color(0xFFD32F2F))
     )
 
     fun interpolateTemperatureColor(
@@ -44,7 +44,10 @@ object TemperatureGradation {
             }
         }
 
-        return if (t < gradient.first().temp) gradient.first().color
-        else gradient.last().color
+        return if (t < gradient.first().temp) {
+            gradient.first().color
+        } else {
+            gradient.last().color
+        }
     }
 }

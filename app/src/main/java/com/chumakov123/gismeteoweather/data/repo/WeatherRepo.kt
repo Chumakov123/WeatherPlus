@@ -110,7 +110,7 @@ object WeatherRepo {
         val now = GismeteoWeatherHtmlParser.parseWeatherNowFromHtml(todayHtml)?.toWeatherDTO()
         val nowWeather = now?.toCurrentWeatherData()
         val hourly = GismeteoWeatherHtmlParser.parseWeatherData(todayHtml) +
-                GismeteoWeatherHtmlParser.parseWeatherData(tomorrowHtml)
+            GismeteoWeatherHtmlParser.parseWeatherData(tomorrowHtml)
         val teenDays = GismeteoWeatherHtmlParser.parseWeatherData(teenDaysHtml, hasMinValues = true)
         val astroTimes = GismeteoWeatherHtmlParser.parseAstroTimes(nowHtml)
         val dateAndCity = GismeteoWeatherHtmlParser.parseDateAndCityFromHtml(todayHtml)

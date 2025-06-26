@@ -1,7 +1,6 @@
 package com.chumakov123.gismeteoweather.data.dto
 
 import com.chumakov123.gismeteoweather.domain.model.CurrentWeatherData
-import com.chumakov123.gismeteoweather.domain.model.WeatherData
 import com.chumakov123.gismeteoweather.domain.util.Utils.normalizeIconString
 import com.chumakov123.gismeteoweather.domain.util.WindDirections
 import com.chumakov123.gismeteoweather.domain.util.WindDirections.windDirections
@@ -24,29 +23,6 @@ data class WeatherDTO(
     val windDirection: Int,
     val windGust: Int,
     val windSpeed: Int,
-)
-
-fun WeatherDTO.toWeatherData() = WeatherData(
-    description = description,
-    icon = normalizeIconString(iconWeather),
-    temperature = temperatureAir,
-    temperatureMin = null,
-    temperatureHeatIndex = temperatureHeatIndex,
-    temperatureHeatIndexMin = null,
-    temperatureAvg = 0,
-    windSpeed = windSpeed,
-    windDirection = windDirections[WindDirections.getWindDirectionIndex(windDirection, windSpeed)] ?: "—",
-    precipitation = precipitation,
-    windGust = windGust,
-    pressure = pressure,
-    pressureMin = null,
-    humidity = humidity,
-    pollenBirch = -1,
-    pollenGrass = -1,
-    radiation = radiation,
-    geomagnetic = -1,
-    snowHeight = 0.0,
-    fallingSnow = 0.0
 )
 
 fun WeatherDTO.toCurrentWeatherData(geomagnetic: Int = 0): CurrentWeatherData {

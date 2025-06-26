@@ -33,8 +33,11 @@ object WeatherSettingsRepository {
     val settingsFlow: Flow<WeatherDisplaySettings> by lazy {
         dataStore.data
             .catch { exception ->
-                if (exception is IOException) emit(emptyPreferences())
-                else throw exception
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
             }
             .map { prefs ->
                 val enabled = prefs[Keys.ENABLED_ROWS]

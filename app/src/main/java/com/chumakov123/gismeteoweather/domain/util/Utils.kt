@@ -28,7 +28,7 @@ object Utils {
     }
     fun getIntervalStartTime(intervalIndex: Int): String {
         val hour = (intervalIndex * 3) % 24
-        return "${hour}⁰⁰"
+        return "$hour⁰⁰"
     }
     fun getIntervalIndexByHour(hour: Int): Int {
         require(hour >= 0) { "Hour must be non-negative" }
@@ -40,14 +40,14 @@ object Utils {
         return dateFormat.format(date)
     }
 
-     val russianWeekdays = mapOf(
-        DayOfWeek.MONDAY    to "пн",
-        DayOfWeek.TUESDAY   to "вт",
+    val russianWeekdays = mapOf(
+        DayOfWeek.MONDAY to "пн",
+        DayOfWeek.TUESDAY to "вт",
         DayOfWeek.WEDNESDAY to "ср",
-        DayOfWeek.THURSDAY  to "чт",
-        DayOfWeek.FRIDAY    to "пт",
-        DayOfWeek.SATURDAY  to "сб",
-        DayOfWeek.SUNDAY    to "вс"
+        DayOfWeek.THURSDAY to "чт",
+        DayOfWeek.FRIDAY to "пт",
+        DayOfWeek.SATURDAY to "сб",
+        DayOfWeek.SUNDAY to "вс"
     )
 
     fun LocalDateTime.toWeekdayDayString(): String {
@@ -79,7 +79,6 @@ object Utils {
         return newInstant.toLocalDateTime(TimeZone.UTC)
     }
 
-
     fun LocalDateTime.plusCalendarDays(days: Int): LocalDateTime {
         val newDate = this.date.plus(DatePeriod(days = days))
         return LocalDateTime(newDate, this.time)
@@ -107,13 +106,13 @@ object Utils {
         locale: Locale = Locale("ru")
     ): String {
         val zone = ZoneId.systemDefault()
-        val now       = java.time.Instant.ofEpochMilli(nowMillis).atZone(zone).toLocalDateTime()
-        val then      = java.time.Instant.ofEpochMilli(timeMillis).atZone(zone).toLocalDateTime()
-        val duration  = Duration.between(then, now)
-        val seconds   = duration.seconds
-        val minutes   = seconds / 60
-        val hours     = minutes / 60
-        val days      = hours / 24
+        val now = java.time.Instant.ofEpochMilli(nowMillis).atZone(zone).toLocalDateTime()
+        val then = java.time.Instant.ofEpochMilli(timeMillis).atZone(zone).toLocalDateTime()
+        val duration = Duration.between(then, now)
+        val seconds = duration.seconds
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        val days = hours / 24
 
         //  менее минуты
         if (seconds < 60) {
@@ -122,12 +121,12 @@ object Utils {
         // минуты
         if (minutes < 60) {
             val m = minutes.toInt().coerceAtLeast(1)
-            return "${m} ${russianPlural(m, "минуту", "минуты", "минут")} назад"
+            return "$m ${russianPlural(m, "минуту", "минуты", "минут")} назад"
         }
         // часы
         if (hours < 24) {
             val h = hours.toInt().coerceAtLeast(1)
-            return "${h} ${russianPlural(h, "час", "часа", "часов")} назад"
+            return "$h ${russianPlural(h, "час", "часа", "часов")} назад"
         }
         // вчера / позавчера
         if (days == 1L) {
@@ -150,7 +149,7 @@ object Utils {
 
     private fun russianPlural(n: Int, form1: String, form2: String, form5: String): String {
         val nAbs = abs(n) % 100
-        val n1   = nAbs % 10
+        val n1 = nAbs % 10
         return if (nAbs in 11..19) {
             form5
         } else if (n1 == 1) {

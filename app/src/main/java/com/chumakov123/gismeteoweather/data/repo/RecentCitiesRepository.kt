@@ -2,7 +2,7 @@ package com.chumakov123.gismeteoweather.data.repo
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.chumakov123.gismeteoweather.OptionItem
+import com.chumakov123.gismeteoweather.domain.model.OptionItem
 
 object RecentCitiesRepository {
     private const val PREFS_NAME = "widget_prefs"

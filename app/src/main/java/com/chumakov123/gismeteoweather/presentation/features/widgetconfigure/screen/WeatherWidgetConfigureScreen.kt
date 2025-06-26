@@ -1,0 +1,175 @@
+package com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.screen
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import com.chumakov123.gismeteoweather.data.remote.GismeteoApi
+import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
+import com.chumakov123.gismeteoweather.domain.model.ForecastMode
+import com.chumakov123.gismeteoweather.domain.model.OptionItem
+import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
+import com.chumakov123.gismeteoweather.domain.model.WidgetState
+import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.components.AppearanceSettings
+import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.components.ConfigureScreenTopBar
+import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.components.LocationSelectionDialog
+import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.components.LocationSelectionRow
+import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.components.WeatherPreviewSection
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+@Composable
+fun WeatherWidgetConfigureScreen(
+    initialState: WidgetState,
+    onConfirm: (OptionItem, WidgetAppearance, ForecastMode) -> Unit,
+    previewWeatherState: WidgetState,
+    modifier: Modifier = Modifier,
+) {
+    var previewState by remember { mutableStateOf(previewWeatherState) }
+    val configuration = LocalConfiguration.current
+    val screenHeightDp = configuration.screenHeightDp.dp
+    val screenWidthDp = configuration.screenWidthDp.dp
+
+    // Preview size calculations
+    val previewPadding = 32.dp
+    val previewRatio = 0.64f
+    val previewWidth = screenWidthDp - previewPadding
+    val previewHeight = previewWidth * previewRatio
+    val previewSizeDp = DpSize(previewWidth, previewHeight)
+
+    // Location selection state
+    var showLocationDialog by remember { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var options by remember { mutableStateOf<List<OptionItem>>(emptyList()) }
+    var selected by remember { mutableStateOf<OptionItem>(OptionItem.Auto) }
+    var ipCity by remember { mutableStateOf<OptionItem.CityInfo?>(null) }
+    var searchJob by remember { mutableStateOf<Job?>(null) }
+    var initialized by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    // Effects
+    LaunchedEffect(Unit) {
+        runCatching { GismeteoApi.fetchCityByIp() }
+            .onSuccess { city ->
+                ipCity = OptionItem.CityInfo(
+                    code = "${city.slug}-${city.id}",
+                    kind = city.kind,
+                    name = city.cityName,
+                    info = listOfNotNull(city.countryName, city.districtName).joinToString(", "),
+                )
+            }
+        options = buildDefaultOptions(ipCity)
+    }
+
+    LaunchedEffect(options, initialState.cityCode) {
+        if (!initialized) {
+            options.firstOrNull { it.cityCode == initialState.cityCode }?.let {
+                selected = it
+                initialized = true
+            }
+        }
+    }
+
+    LaunchedEffect(query) {
+        searchJob?.cancel()
+        searchJob = coroutineScope.launch {
+            delay(300)
+            options = if (query.isBlank()) {
+                buildDefaultOptions(ipCity)
+            } else {
+                GismeteoApi
+                    .searchCitiesByName(query.trim(), limit = 10)
+                    .filter { ci -> "${ci.slug}-${ci.id}" != ipCity?.code }
+                    .map { ci ->
+                        OptionItem.CityInfo(
+                            code = "${ci.slug}-${ci.id}",
+                            kind = ci.kind,
+                            name = ci.cityName,
+                            info = listOfNotNull(ci.countryName, ci.districtName).joinToString(", "),
+                        )
+                    }
+            }
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            ConfigureScreenTopBar(
+                forecastMode = previewState.forecastMode,
+                onConfirm = {
+                    onConfirm(selected, previewState.appearance, previewState.forecastMode)
+                },
+                onForecastModeChange = { newMode ->
+                    previewState = previewState.copy(forecastMode = newMode)
+                }
+            )
+        },
+        modifier = modifier
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentPadding = innerPadding,
+        ) {
+            item {
+                WeatherPreviewSection(
+                    previewState = previewState,
+                    previewSizeDp = previewSizeDp,
+                    screenHeightDp = screenHeightDp
+                )
+            }
+
+            item {
+                LocationSelectionRow(
+                    selectedLocation = selected,
+                    onLocationClick = { showLocationDialog = true }
+                )
+            }
+
+            item {
+                AppearanceSettings(
+                    appearance = previewState.appearance,
+                    onAppearanceChange = { newAppearance ->
+                        previewState = previewState.copy(appearance = newAppearance)
+                    }
+                )
+            }
+        }
+    }
+
+    LocationSelectionDialog(
+        showDialog = showLocationDialog,
+        query = query,
+        options = options,
+        onDismiss = { showLocationDialog = false },
+        onQueryChange = { query = it },
+        onLocationSelected = { location ->
+            selected = location
+            showLocationDialog = false
+            query = ""
+        }
+    )
+}
+
+private fun buildDefaultOptions(ipCity: OptionItem.CityInfo?): List<OptionItem> =
+    buildList {
+        add(OptionItem.Auto)
+        ipCity?.let { add(it) }
+        addAll(RecentCitiesRepository.loadRecent(ipCity))
+    }

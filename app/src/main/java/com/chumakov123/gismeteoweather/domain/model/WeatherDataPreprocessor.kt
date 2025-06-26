@@ -26,12 +26,15 @@ object WeatherDataPreprocessor {
         forecastMode: ForecastMode,
         localDateTime: LocalDateTime
     ): Map<WeatherRowType, WeatherRow> {
-        val startIndex = if (forecastMode == ForecastMode.ByDays) 0
-        else Utils.getIntervalIndexByHour(localDateTime.hour)
+        val startIndex = if (forecastMode == ForecastMode.ByDays) {
+            0
+        } else {
+            Utils.getIntervalIndexByHour(localDateTime.hour)
+        }
         val slice = weather.drop(startIndex)
 
         return mapOf(
-            WeatherRowType.TIME_LABELS to createTimeLabelsRow(slice, forecastMode, localDateTime,startIndex),
+            WeatherRowType.TIME_LABELS to createTimeLabelsRow(slice, forecastMode, localDateTime, startIndex),
             WeatherRowType.ICONS to createIconsRow(slice),
             WeatherRowType.TEMP to createTemperatureChartRow(slice),
             WeatherRowType.TEMP_HEAT_INDEX to createTemperatureHeatIndexChartRow(slice),
@@ -149,7 +152,8 @@ object WeatherDataPreprocessor {
             values = slice.map {
                 WeatherCell.IconWithCenterText(
                     text = "${if (it.geomagnetic == -1) "—" else it.geomagnetic}",
-                    iconRes = getGeomagneticDrawable(it.geomagnetic))
+                    iconRes = getGeomagneticDrawable(it.geomagnetic)
+                )
             },
             cellHeight = 36.dp
         )
@@ -161,7 +165,8 @@ object WeatherDataPreprocessor {
             values = slice.map {
                 WeatherCell.IconAboveText(
                     text = "${if (it.humidity == -1) "—" else it.humidity}",
-                    iconRes = getHumidityDrawable(it.humidity))
+                    iconRes = getHumidityDrawable(it.humidity)
+                )
             },
             cellHeight = 48.dp
         )
@@ -173,7 +178,8 @@ object WeatherDataPreprocessor {
             values = slice.map {
                 WeatherCell.IconWithCenterText(
                     text = "${if (it.pollenBirch == -1) "—" else it.pollenBirch}",
-                    iconRes = getScale5Drawable(it.pollenBirch))
+                    iconRes = getScale5Drawable(it.pollenBirch)
+                )
             },
             cellHeight = 36.dp
         )
@@ -185,7 +191,8 @@ object WeatherDataPreprocessor {
             values = slice.map {
                 WeatherCell.IconWithCenterText(
                     text = "${if (it.pollenGrass == -1) "—" else it.pollenGrass}",
-                    iconRes = getScale5Drawable(it.pollenGrass))
+                    iconRes = getScale5Drawable(it.pollenGrass)
+                )
             },
             cellHeight = 36.dp
         )
@@ -204,12 +211,14 @@ object WeatherDataPreprocessor {
                         WeatherCell.IconAboveText(
                             text = "${wd.windGust} ${wd.windDirection}",
                             iconRes = drawable,
-                            iconRotation = angle.toFloat())
+                            iconRotation = angle.toFloat()
+                        )
                     else ->
                         WeatherCell.IconAboveText(
                             text = "${wd.windSpeed}-${wd.windGust} ${wd.windDirection}",
                             iconRes = drawable,
-                            iconRotation = angle.toFloat())
+                            iconRotation = angle.toFloat()
+                        )
                 }
             },
             cellHeight = 48.dp
@@ -224,7 +233,7 @@ object WeatherDataPreprocessor {
                     backgroundRes = R.drawable.empty,
                     iconRes = getPrecipitationDrawable(wd.precipitation),
                     text = if (wd.precipitation == 0.0) "0" else "%.1f".format(wd.precipitation),
-                    textOffsetFromBottom = (2 + ceil(wd.precipitation).toInt().coerceIn(0, 12)*2.5).dp,
+                    textOffsetFromBottom = (2 + ceil(wd.precipitation).toInt().coerceIn(0, 12) * 2.5).dp,
                     textColor = if (wd.precipitation == 0.0) Color.Gray else Color.White
                 )
             },
@@ -237,8 +246,11 @@ object WeatherDataPreprocessor {
             label = "Выпадающий снег, см",
             values = slice.map { wd ->
                 WeatherCell.Text(
-                    if (wd.fallingSnow == 0.0) "0"
-                    else "%.1f".format(wd.fallingSnow)
+                    if (wd.fallingSnow == 0.0) {
+                        "0"
+                    } else {
+                        "%.1f".format(wd.fallingSnow)
+                    }
                 )
             },
             cellHeight = 24.dp
@@ -250,8 +262,11 @@ object WeatherDataPreprocessor {
             label = "Высота снежного покрова, см",
             values = slice.map { wd ->
                 WeatherCell.Text(
-                    if (wd.snowHeight == 0.0) "0"
-                    else "%.1f".format(wd.snowHeight)
+                    if (wd.snowHeight == 0.0) {
+                        "0"
+                    } else {
+                        "%.1f".format(wd.snowHeight)
+                    }
                 )
             },
             cellHeight = 24.dp

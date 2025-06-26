@@ -12,10 +12,10 @@ object GismeteoHtmlFetcher {
     suspend fun getNowHtml(cityCode: String): Document =
         fetchHtmlWithGzip(cityCode, "now/")
 
-    suspend fun getTodayHtml(cityCode: String): Document = //Интервал три часа
+    suspend fun getTodayHtml(cityCode: String): Document = // Интервал три часа
         fetchHtmlWithGzip(cityCode)
 
-    suspend fun getHourlyHtml(cityCode: String): Document = //Интервал час
+    suspend fun getHourlyHtml(cityCode: String): Document = // Интервал час
         fetchHtmlWithGzip(cityCode, "hourly/")
 
     suspend fun getTomorrowHtml(cityCode: String): Document =
@@ -26,13 +26,6 @@ object GismeteoHtmlFetcher {
 
     suspend fun get10DaysHtml(cityCode: String): Document =
         fetchHtmlWithGzip(cityCode, "10-days/")
-
-    private suspend fun fetchHtml(cityCode: String, path: String = ""): String {
-        val url = "https://www.gismeteo.ru/weather-$cityCode/$path"
-        return withContext(Dispatchers.IO) {
-            Jsoup.connect(url).get().outerHtml()
-        }
-    }
 
     private suspend fun fetchHtmlWithGzip(cityCode: String, path: String = ""): Document {
         val urlString = "https://www.gismeteo.ru/weather-$cityCode/$path"

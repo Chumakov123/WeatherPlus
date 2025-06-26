@@ -7,14 +7,14 @@ import com.chumakov123.gismeteoweather.domain.util.JsonConfig.AppJson
 fun CityByIpResponse.toCityInfo(): CityInfo {
     val ru = translations.ru
     return CityInfo(
-        id             = id,
-        slug           = slug,
+        id = id,
+        slug = slug,
         kind = kind,
-        countryCode    = country.code,
-        cityName       = ru.city.name,
-        countryName    = ru.country.name,
-        districtName   = ru.district?.name,
-        subdistrictName= ru.subdistrict?.name
+        countryCode = country.code,
+        cityName = ru.city.name,
+        countryName = ru.country.name,
+        districtName = ru.district?.name,
+        subdistrictName = ru.subdistrict?.name
     )
 }
 

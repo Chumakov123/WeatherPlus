@@ -25,7 +25,7 @@ class App : Application() {
                     .build()
             }
             .memoryCachePolicy(CachePolicy.ENABLED)
-            .diskCachePolicy(  CachePolicy.ENABLED )
+            .diskCachePolicy(CachePolicy.ENABLED)
             .build()
 
         Coil.setImageLoader(imageLoader)

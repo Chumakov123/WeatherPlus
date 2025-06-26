@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 object JsonConfig {
     internal val AppJson: Json = Json {
         ignoreUnknownKeys = true
-        prettyPrint       = false
-        isLenient         = true
+        prettyPrint = false
+        isLenient = true
     }
 }
