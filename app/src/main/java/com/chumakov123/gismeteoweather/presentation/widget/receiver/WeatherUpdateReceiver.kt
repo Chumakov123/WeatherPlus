@@ -8,7 +8,7 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
-import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
+import com.chumakov123.gismeteoweather.data.weather.WeatherRepository
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherStateDefinition
 import com.chumakov123.gismeteoweather.presentation.widget.WeatherGlanceWidget
@@ -39,7 +39,7 @@ class WeatherUpdateReceiver : BroadcastReceiver() {
 
             cityToIds.forEach { (city, idsForCity) ->
                 launch {
-                    val newInfo: WeatherInfo = runCatching { WeatherRepo.getWeatherInfo(city) }
+                    val newInfo: WeatherInfo = runCatching { WeatherRepository.getWeatherInfo(city) }
                         .getOrElse { err ->
                             val last =
                                 idsForCity.firstNotNullOfOrNull { prevStates[it]!!.lastAvailable }

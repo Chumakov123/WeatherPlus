@@ -13,11 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.chumakov123.gismeteoweather.domain.model.OptionItem
+import com.chumakov123.gismeteoweather.domain.model.LocationInfo
+
 
 @Composable
 fun LocationSelectionRow(
-    selectedLocation: OptionItem,
+    selectedLocation: LocationInfo,
     onLocationClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {

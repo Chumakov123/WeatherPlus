@@ -45,8 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
-import com.chumakov123.gismeteoweather.presentation.components.SlideUpPanelContinuous
+import com.chumakov123.gismeteoweather.data.weather.WeatherRepository
+import com.chumakov123.gismeteoweather.presentation.common.components.SlideUpPanelContinuous
 import com.chumakov123.gismeteoweather.presentation.features.weather.components.PreviewWeatherTable
 import com.chumakov123.gismeteoweather.presentation.features.weather.components.WeatherBackground
 import com.chumakov123.gismeteoweather.presentation.features.weather.components.WeatherContent
@@ -278,7 +278,7 @@ fun WeatherMainScreen(
                     }
                 }
                 if (selectedCityState is CityWeatherUiState.Success) {
-                    if (!WeatherRepo.isActual(selectedCityState.rawData.updateTime)) {
+                    if (!WeatherRepository.isActual(selectedCityState.rawData.updateTime)) {
                         if (updatingCities.contains(selectedCityState.rawData.placeCode)) {
                             Text("Обновление...", modifier = Modifier.align(Alignment.TopCenter).padding(16.dp))
                         } else {

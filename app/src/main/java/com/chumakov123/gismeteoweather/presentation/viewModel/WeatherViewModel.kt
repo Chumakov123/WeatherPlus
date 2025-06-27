@@ -4,12 +4,12 @@ import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
-import com.chumakov123.gismeteoweather.data.repo.WeatherCityRepository
-import com.chumakov123.gismeteoweather.data.repo.WeatherRepo
-import com.chumakov123.gismeteoweather.data.repo.WeatherSettingsRepository
+import com.chumakov123.gismeteoweather.data.city.RecentCitiesRepository
+import com.chumakov123.gismeteoweather.data.city.WeatherCityRepository
+import com.chumakov123.gismeteoweather.data.weather.WeatherRepository
+import com.chumakov123.gismeteoweather.data.storage.SettingsRepository
 import com.chumakov123.gismeteoweather.domain.model.ForecastMode
-import com.chumakov123.gismeteoweather.domain.model.OptionItem
+import com.chumakov123.gismeteoweather.domain.model.LocationInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherDataPreprocessor
 import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
@@ -55,7 +55,7 @@ class WeatherViewModel(
     val updatingCities = _updatingCities.asStateFlow()
 
     val settings: StateFlow<WeatherDisplaySettings> =
-        WeatherSettingsRepository.settingsFlow
+        SettingsRepository.settingsFlow
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.Lazily,
@@ -64,7 +64,7 @@ class WeatherViewModel(
 
     fun onSettingsChanged(newSettings: WeatherDisplaySettings) {
         viewModelScope.launch {
-            WeatherSettingsRepository.updateSettings(newSettings)
+            SettingsRepository.updateSettings(newSettings)
         }
     }
 
@@ -134,7 +134,7 @@ class WeatherViewModel(
         }
     }
 
-    fun addCity(cityInfo: OptionItem.CityInfo) {
+    fun addCity(cityInfo: LocationInfo.CityInfo) {
         viewModelScope.launch {
             WeatherCityRepository.addCity(cityInfo.cityCode)
             RecentCitiesRepository.save(cityInfo)
@@ -223,14 +223,14 @@ class WeatherViewModel(
         try {
             val cached =
                 withContext(Dispatchers.IO) {
-                    WeatherRepo.getWeatherInfo(cityCode, allowStale = true)
+                    WeatherRepository.getWeatherInfo(cityCode, allowStale = true)
                 }
 
             if (cached is WeatherInfo.Available) {
                 if (showLoadingState) {
                     updateCityState(cityCode, cached)
                 }
-                if (WeatherRepo.isActual(cached.updateTime)) {
+                if (WeatherRepository.isActual(cached.updateTime)) {
                     return
                 }
             } else {
@@ -242,7 +242,7 @@ class WeatherViewModel(
 
             val fresh =
                 withContext(Dispatchers.IO) {
-                    WeatherRepo.getWeatherInfo(cityCode, allowStale = false)
+                    WeatherRepository.getWeatherInfo(cityCode, allowStale = false)
                 }
 
             if (fresh is WeatherInfo.Available) {

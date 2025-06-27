@@ -13,18 +13,18 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.chumakov123.gismeteoweather.domain.model.OptionItem
-import com.chumakov123.gismeteoweather.presentation.components.SearchBar
-import com.chumakov123.gismeteoweather.presentation.components.SearchResultRow
+import com.chumakov123.gismeteoweather.domain.model.LocationInfo
+import com.chumakov123.gismeteoweather.presentation.common.components.SearchBar
+import com.chumakov123.gismeteoweather.presentation.common.components.SearchResultRow
 
 @Composable
 fun LocationSelectionDialog(
     showDialog: Boolean,
     query: String,
-    options: List<OptionItem>,
+    options: List<LocationInfo>,
     onDismiss: () -> Unit,
     onQueryChange: (String) -> Unit,
-    onLocationSelected: (OptionItem) -> Unit,
+    onLocationSelected: (LocationInfo) -> Unit,
 ) {
     if (showDialog) {
         AlertDialog(

@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.WeatherRow
 import com.chumakov123.gismeteoweather.domain.model.WeatherRowType
-import com.chumakov123.gismeteoweather.presentation.components.WeatherTable
+import com.chumakov123.gismeteoweather.presentation.common.components.WeatherTable
 
 @Composable
 fun PreviewWeatherTable(

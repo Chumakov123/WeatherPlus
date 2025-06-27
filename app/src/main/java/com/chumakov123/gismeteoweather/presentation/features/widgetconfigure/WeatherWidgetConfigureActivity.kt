@@ -18,9 +18,9 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.lifecycle.lifecycleScope
-import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
+import com.chumakov123.gismeteoweather.data.city.RecentCitiesRepository
 import com.chumakov123.gismeteoweather.domain.model.ForecastMode
-import com.chumakov123.gismeteoweather.domain.model.OptionItem
+import com.chumakov123.gismeteoweather.domain.model.LocationInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherStateDefinition
 import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
@@ -100,7 +100,7 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
     }
 
     private fun applySelectionAndFinish(
-        item: OptionItem,
+        item: LocationInfo,
         appearance: WidgetAppearance,
         forecastMode: ForecastMode,
     ) {
@@ -117,7 +117,7 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
                 glanceId = glanceId,
             ) { old -> old.copy(cityCode = item.cityCode, appearance = appearance, forecastMode = forecastMode) }
 
-            if (item != OptionItem.Auto) saveRecentCity(item)
+            if (item != LocationInfo.Auto) saveRecentCity(item)
 
             setResult(
                 RESULT_OK,
@@ -137,7 +137,7 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
                 },
             )
 
-            if (item is OptionItem.CityInfo) {
+            if (item is LocationInfo.CityInfo) {
                 RecentCitiesRepository.save(item)
             }
 
@@ -145,8 +145,8 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
         }
     }
 
-    private fun saveRecentCity(item: OptionItem) {
-        if (item == OptionItem.Auto) return
+    private fun saveRecentCity(item: LocationInfo) {
+        if (item == LocationInfo.Auto) return
         val prefs = getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
         val key = "recent_cities"
         val current = prefs.getStringSet(key, emptySet())?.toMutableList() ?: mutableListOf()

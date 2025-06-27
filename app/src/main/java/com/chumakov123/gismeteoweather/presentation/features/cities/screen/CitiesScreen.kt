@@ -36,10 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.chumakov123.gismeteoweather.data.remote.GismeteoApi
-import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
-import com.chumakov123.gismeteoweather.domain.model.OptionItem
-import com.chumakov123.gismeteoweather.presentation.components.SearchResultRow
+import com.chumakov123.gismeteoweather.data.network.GismeteoApi
+import com.chumakov123.gismeteoweather.data.city.RecentCitiesRepository
+import com.chumakov123.gismeteoweather.domain.model.LocationInfo
+import com.chumakov123.gismeteoweather.presentation.common.components.SearchResultRow
 import com.chumakov123.gismeteoweather.presentation.features.cities.components.CityCard
 import com.chumakov123.gismeteoweather.presentation.features.cities.components.CityCardShimmer
 import com.chumakov123.gismeteoweather.presentation.features.cities.components.NormalTopBar
@@ -88,8 +88,8 @@ fun CitiesScreen(
     }
 
     var query by rememberSaveable { mutableStateOf("") }
-    var options by remember { mutableStateOf<List<OptionItem>>(emptyList()) }
-    var ipCity by remember { mutableStateOf<OptionItem.CityInfo?>(null) }
+    var options by remember { mutableStateOf<List<LocationInfo>>(emptyList()) }
+    var ipCity by remember { mutableStateOf<LocationInfo.CityInfo?>(null) }
     var searchJob by remember { mutableStateOf<Job?>(null) }
     val coroutineScope = rememberCoroutineScope()
 
@@ -103,7 +103,7 @@ fun CitiesScreen(
     }
 
     fun buildDefaultOptions() = buildList {
-        add(OptionItem.Auto)
+        add(LocationInfo.Auto)
         ipCity?.let { add(it) }
         addAll(RecentCitiesRepository.loadRecent(ipCity))
     }
@@ -141,7 +141,7 @@ fun CitiesScreen(
     LaunchedEffect(Unit) {
         runCatching { GismeteoApi.fetchCityByIp() }
             .onSuccess { city ->
-                ipCity = OptionItem.CityInfo(
+                ipCity = LocationInfo.CityInfo(
                     code = "${city.slug}-${city.id}",
                     name = city.cityName,
                     info = listOfNotNull(city.countryName, city.districtName).joinToString(", "),
@@ -163,7 +163,7 @@ fun CitiesScreen(
                 }.getOrDefault(emptyList())
                     .filter { ci -> "${ci.slug}-${ci.id}" != ipCity?.code }
                     .map {
-                        OptionItem.CityInfo(
+                        LocationInfo.CityInfo(
                             code = "${it.slug}-${it.id}",
                             name = it.cityName,
                             info = listOfNotNull(it.countryName, it.districtName).joinToString(", "),
@@ -353,7 +353,7 @@ fun CitiesScreen(
                         }
                     } else {
                         items(options) { item ->
-                            if (item is OptionItem.CityInfo) {
+                            if (item is LocationInfo.CityInfo) {
                                 SearchResultRow(item) {
                                     isSearchActive = false
                                     query = ""

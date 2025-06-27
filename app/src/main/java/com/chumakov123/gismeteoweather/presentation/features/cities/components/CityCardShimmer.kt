@@ -18,7 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.chumakov123.gismeteoweather.presentation.components.ShimmerPlaceholder
+import com.chumakov123.gismeteoweather.presentation.common.components.ShimmerPlaceholder
 
 @Composable
 fun CityCardShimmer() {

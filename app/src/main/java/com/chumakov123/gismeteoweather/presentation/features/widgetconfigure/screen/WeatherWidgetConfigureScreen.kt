@@ -17,10 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.chumakov123.gismeteoweather.data.remote.GismeteoApi
-import com.chumakov123.gismeteoweather.data.repo.RecentCitiesRepository
+import com.chumakov123.gismeteoweather.data.city.RecentCitiesRepository
+import com.chumakov123.gismeteoweather.data.network.GismeteoApi
 import com.chumakov123.gismeteoweather.domain.model.ForecastMode
-import com.chumakov123.gismeteoweather.domain.model.OptionItem
+import com.chumakov123.gismeteoweather.domain.model.LocationInfo
 import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
 import com.chumakov123.gismeteoweather.domain.model.WidgetState
 import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.components.AppearanceSettings
@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun WeatherWidgetConfigureScreen(
     initialState: WidgetState,
-    onConfirm: (OptionItem, WidgetAppearance, ForecastMode) -> Unit,
+    onConfirm: (LocationInfo, WidgetAppearance, ForecastMode) -> Unit,
     previewWeatherState: WidgetState,
     modifier: Modifier = Modifier,
 ) {
@@ -54,9 +54,9 @@ fun WeatherWidgetConfigureScreen(
     // Location selection state
     var showLocationDialog by remember { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
-    var options by remember { mutableStateOf<List<OptionItem>>(emptyList()) }
-    var selected by remember { mutableStateOf<OptionItem>(OptionItem.Auto) }
-    var ipCity by remember { mutableStateOf<OptionItem.CityInfo?>(null) }
+    var options by remember { mutableStateOf<List<LocationInfo>>(emptyList()) }
+    var selected by remember { mutableStateOf<LocationInfo>(LocationInfo.Auto) }
+    var ipCity by remember { mutableStateOf<LocationInfo.CityInfo?>(null) }
     var searchJob by remember { mutableStateOf<Job?>(null) }
     var initialized by remember { mutableStateOf(false) }
 
@@ -66,7 +66,7 @@ fun WeatherWidgetConfigureScreen(
     LaunchedEffect(Unit) {
         runCatching { GismeteoApi.fetchCityByIp() }
             .onSuccess { city ->
-                ipCity = OptionItem.CityInfo(
+                ipCity = LocationInfo.CityInfo(
                     code = "${city.slug}-${city.id}",
                     kind = city.kind,
                     name = city.cityName,
@@ -96,7 +96,7 @@ fun WeatherWidgetConfigureScreen(
                     .searchCitiesByName(query.trim(), limit = 10)
                     .filter { ci -> "${ci.slug}-${ci.id}" != ipCity?.code }
                     .map { ci ->
-                        OptionItem.CityInfo(
+                        LocationInfo.CityInfo(
                             code = "${ci.slug}-${ci.id}",
                             kind = ci.kind,
                             name = ci.cityName,
@@ -167,9 +167,9 @@ fun WeatherWidgetConfigureScreen(
     )
 }
 
-private fun buildDefaultOptions(ipCity: OptionItem.CityInfo?): List<OptionItem> =
+private fun buildDefaultOptions(ipCity: LocationInfo.CityInfo?): List<LocationInfo> =
     buildList {
-        add(OptionItem.Auto)
+        add(LocationInfo.Auto)
         ipCity?.let { add(it) }
         addAll(RecentCitiesRepository.loadRecent(ipCity))
     }
