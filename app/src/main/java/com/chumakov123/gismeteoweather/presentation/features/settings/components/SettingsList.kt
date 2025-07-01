@@ -1,7 +1,6 @@
 package com.chumakov123.gismeteoweather.presentation.features.settings.components
 
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -96,18 +95,20 @@ fun SettingsList(
                 ) {
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            modifier = Modifier.draggableHandle(),
                             onClick = {},
+                            modifier = Modifier
+                                .draggableHandle()
+                                .padding(end = 8.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.DragHandle,
-                                contentDescription = "Перетащить",
-                                modifier = Modifier
-                                    .size(24.dp)
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
 
@@ -115,10 +116,9 @@ fun SettingsList(
                             text = row.displayName,
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
                         )
-
-                        Spacer(Modifier.weight(1f))
 
                         Checkbox(
                             checked = row in localEnabledRows,
@@ -128,7 +128,10 @@ fun SettingsList(
                                 } else {
                                     localEnabledRows - row
                                 }
-                            }
+                            },
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .size(48.dp),
                         )
                     }
                 }

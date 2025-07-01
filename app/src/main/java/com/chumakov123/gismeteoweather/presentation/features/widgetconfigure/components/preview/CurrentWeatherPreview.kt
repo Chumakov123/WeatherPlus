@@ -18,11 +18,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
 
 @Composable
 fun CurrentWeatherPreview(
     weatherInfo: WeatherInfo.Available,
-    modifier: Modifier = Modifier
+    appearance: WidgetAppearance,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
@@ -42,7 +44,7 @@ fun CurrentWeatherPreview(
                     text = "${if (weatherInfo.now.temperature > 0) "+" else ""}${weatherInfo.now.temperature}°",
                     style = TextStyle(
                         color = Color.White,
-                        fontSize = 24.sp
+                        fontSize = 24.sp * appearance.textScale
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -53,7 +55,7 @@ fun CurrentWeatherPreview(
                 text = weatherInfo.now.description,
                 style = TextStyle(
                     color = Color.White,
-                    fontSize = 11.sp,
+                    fontSize = 11.sp * appearance.textScale,
                     textAlign = TextAlign.Center
                 ),
                 maxLines = 1,
@@ -77,7 +79,7 @@ fun CurrentWeatherPreview(
                     text = "Осадки: ",
                     style = TextStyle(
                         color = Color.LightGray,
-                        fontSize = 11.sp
+                        fontSize = 11.sp * appearance.textScale
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -90,7 +92,7 @@ fun CurrentWeatherPreview(
                     },
                     style = TextStyle(
                         color = Color.White,
-                        fontSize = 11.sp
+                        fontSize = 11.sp * appearance.textScale
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -102,7 +104,7 @@ fun CurrentWeatherPreview(
                     text = "Ветер: ",
                     style = TextStyle(
                         color = Color.LightGray,
-                        fontSize = 11.sp
+                        fontSize = 11.sp * appearance.textScale
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -119,7 +121,7 @@ fun CurrentWeatherPreview(
                     },
                     style = TextStyle(
                         color = Color.White,
-                        fontSize = 11.sp
+                        fontSize = 11.sp * appearance.textScale
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -131,7 +133,7 @@ fun CurrentWeatherPreview(
                     text = "Давление: ",
                     style = TextStyle(
                         color = Color.LightGray,
-                        fontSize = 11.sp
+                        fontSize = 11.sp * appearance.textScale
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -140,7 +142,7 @@ fun CurrentWeatherPreview(
                     text = "${weatherInfo.now.pressure} мм рт. ст.",
                     style = TextStyle(
                         color = Color.White,
-                        fontSize = 11.sp
+                        fontSize = 11.sp * appearance.textScale
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

@@ -5,27 +5,27 @@ import coil.Coil
 import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.request.CachePolicy
-import com.chumakov123.gismeteoweather.data.storage.DataStoreProvider
 import com.chumakov123.gismeteoweather.data.city.RecentCitiesRepository
 import com.chumakov123.gismeteoweather.data.city.WeatherCityRepository
-import com.chumakov123.gismeteoweather.data.weather.WeatherRepository
+import com.chumakov123.gismeteoweather.data.storage.DataStoreProvider
 import com.chumakov123.gismeteoweather.data.storage.SettingsRepository
-import java.io.File
+import com.chumakov123.gismeteoweather.data.weather.WeatherRepository
 
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val diskCacheDirectory = File(cacheDir, "image_cache")
         val imageLoader = ImageLoader.Builder(this)
             .diskCache {
                 DiskCache.Builder()
-                    .directory(diskCacheDirectory)
+                    .directory(this.cacheDir.resolve("image_cache"))
                     .maxSizeBytes(5L * 1024 * 1024)
                     .build()
             }
-            .memoryCachePolicy(CachePolicy.ENABLED)
             .diskCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .respectCacheHeaders(false)
             .build()
 
         Coil.setImageLoader(imageLoader)

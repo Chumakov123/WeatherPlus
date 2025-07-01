@@ -23,12 +23,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chumakov123.gismeteoweather.R
+import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
 
 @Composable
 fun WidgetHeaderPreview(
     placeName: String,
     updateTimeText: String?,
     isLoading: Boolean,
+    appearance: WidgetAppearance,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -44,7 +46,7 @@ fun WidgetHeaderPreview(
                 append(placeName)
             },
             style = TextStyle(
-                fontSize = 12.sp,
+                fontSize = 12.sp * appearance.textScale,
                 color = Color.White,
                 platformStyle = PlatformTextStyle(includeFontPadding = false)
             ),

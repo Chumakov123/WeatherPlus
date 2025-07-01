@@ -36,8 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.chumakov123.gismeteoweather.data.network.GismeteoApi
 import com.chumakov123.gismeteoweather.data.city.RecentCitiesRepository
+import com.chumakov123.gismeteoweather.data.network.GismeteoApi
 import com.chumakov123.gismeteoweather.domain.model.LocationInfo
 import com.chumakov123.gismeteoweather.presentation.common.components.SearchResultRow
 import com.chumakov123.gismeteoweather.presentation.features.cities.components.CityCard
@@ -100,6 +100,10 @@ fun CitiesScreen(
         if (isSearchActive) {
             searchTextFieldFocusRequester.requestFocus()
         }
+    }
+
+    val displayedOptions = remember(options) {
+        options.take(10)
     }
 
     fun buildDefaultOptions() = buildList {
@@ -352,7 +356,7 @@ fun CitiesScreen(
                             }
                         }
                     } else {
-                        items(options) { item ->
+                        items(displayedOptions) { item ->
                             if (item is LocationInfo.CityInfo) {
                                 SearchResultRow(item) {
                                     isSearchActive = false
@@ -362,6 +366,7 @@ fun CitiesScreen(
                                             viewModel.addCity(item)
                                         }
                                         SearchMode.PREVIEW -> {
+                                            RecentCitiesRepository.save(item)
                                             onCityPreview(item.cityCode)
                                         }
                                     }

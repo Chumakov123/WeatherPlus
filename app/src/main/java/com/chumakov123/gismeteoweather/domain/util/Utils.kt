@@ -160,4 +160,15 @@ object Utils {
             form5
         }
     }
+
+    fun isMIUI(): Boolean {
+        return try {
+            val systemProperties = Class.forName("android.os.SystemProperties")
+            val getMethod = systemProperties.getMethod("get", String::class.java)
+            val miuiVersion = getMethod.invoke(null, "ro.miui.ui.version.name") as String
+            miuiVersion.isNotEmpty()
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

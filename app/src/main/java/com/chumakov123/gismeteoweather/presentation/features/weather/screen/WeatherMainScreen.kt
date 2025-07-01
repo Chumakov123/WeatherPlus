@@ -64,6 +64,7 @@ fun WeatherMainScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val settings by viewModel.settings.collectAsState()
+    val canPinWidget by viewModel.canPinWidgets.collectAsState()
 
     val isPreviewMode = previewCityCode != null
 
@@ -257,6 +258,19 @@ fun WeatherMainScreen(
                                         textColor = Color.Black,
                                     ),
                             )
+                            if (canPinWidget) {
+                                DropdownMenuItem(
+                                    text = { Text("Добавить виджет") },
+                                    onClick = {
+                                        expanded = false
+                                        viewModel.requestWidgetPinning(currentCity)
+                                    },
+                                    colors =
+                                    MenuDefaults.itemColors(
+                                        textColor = Color.Black,
+                                    ),
+                                )
+                            }
                             DropdownMenuItem(
                                 text = {
                                     Text(if (isCityAdded) "Удалить" else "Сохранить")

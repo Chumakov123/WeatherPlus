@@ -21,6 +21,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
+import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
 import com.chumakov123.gismeteoweather.domain.util.WeatherDrawables
 
 @Composable
@@ -28,6 +29,7 @@ fun CurrentWeather(
     weatherInfo: WeatherInfo.Available,
     modifier: GlanceModifier = GlanceModifier,
     forecastColumns: Int,
+    appearance: WidgetAppearance,
     forecastRows: Int,
 ) {
     Row(
@@ -53,7 +55,7 @@ fun CurrentWeather(
                     text = "${if (weatherInfo.now.temperature > 0) "+" else ""}${weatherInfo.now.temperature}°",
                     style = TextStyle(
                         color = ColorProvider(Color.White),
-                        fontSize = 16.sp
+                        fontSize = 16.sp*appearance.textScale
                     ),
                     maxLines = 1
                 )
@@ -67,7 +69,7 @@ fun CurrentWeather(
                         text = "${if (weatherInfo.now.temperature > 0) "+" else ""}${weatherInfo.now.temperature}°",
                         style = TextStyle(
                             color = ColorProvider(Color.White),
-                            fontSize = 24.sp
+                            fontSize = 24.sp*appearance.textScale
                         ),
                         maxLines = 1
                     )
@@ -82,7 +84,7 @@ fun CurrentWeather(
                 },
                 style = TextStyle(
                     color = ColorProvider(Color.White),
-                    fontSize = 11.sp,
+                    fontSize = 11.sp*appearance.textScale,
                     textAlign = TextAlign.Center
                 ),
                 maxLines = 1
@@ -110,7 +112,7 @@ fun CurrentWeather(
                         text = "Осадки: ",
                         style = TextStyle(
                             color = ColorProvider(Color.LightGray),
-                            fontSize = 11.sp
+                            fontSize = 11.sp*appearance.textScale
                         ),
                         maxLines = 1
                     )
@@ -122,7 +124,7 @@ fun CurrentWeather(
                         },
                         style = TextStyle(
                             color = ColorProvider(Color.White),
-                            fontSize = 11.sp
+                            fontSize = 11.sp*appearance.textScale
                         ),
                         maxLines = 1
                     )
@@ -133,7 +135,7 @@ fun CurrentWeather(
                         text = "Ветер: ",
                         style = TextStyle(
                             color = ColorProvider(Color.LightGray),
-                            fontSize = 11.sp
+                            fontSize = 11.sp*appearance.textScale
                         ),
                         maxLines = 1
                     )
@@ -149,7 +151,7 @@ fun CurrentWeather(
                         },
                         style = TextStyle(
                             color = ColorProvider(Color.White),
-                            fontSize = 11.sp
+                            fontSize = 11.sp*appearance.textScale
                         ),
                         maxLines = 1
                     )
@@ -160,7 +162,7 @@ fun CurrentWeather(
                         text = "Давление: ",
                         style = TextStyle(
                             color = ColorProvider(Color.LightGray),
-                            fontSize = 11.sp
+                            fontSize = 11.sp*appearance.textScale
                         ),
                         maxLines = 1
                     )
@@ -168,7 +170,7 @@ fun CurrentWeather(
                         text = "${weatherInfo.now.pressure} мм рт. ст.",
                         style = TextStyle(
                             color = ColorProvider(Color.White),
-                            fontSize = 11.sp
+                            fontSize = 11.sp*appearance.textScale
                         ),
                         maxLines = 1
                     )

@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -24,8 +26,10 @@ import androidx.glance.appwidget.updateAll
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
@@ -95,13 +99,24 @@ class WeatherGlanceWidget : GlanceAppWidget() {
                             transparencyPercent = transparency,
                         ) {
                             Text(
-                                text = widgetState.weatherInfo.message,
-                                style =
-                                    TextStyle(
-                                        color = ColorProvider(Color.White),
-                                    ),
+                                text = "Погода Гисметео",
+                                style = TextStyle(
+                                    color = ColorProvider(Color.White),
+                                    fontSize = 20.sp
+                                ),
                             )
+//                            Spacer(modifier = GlanceModifier.height(8.dp))
+//                            Text(
+//                                text = widgetState.weatherInfo.message,
+//                                style =
+//                                    TextStyle(
+//                                        color = ColorProvider(Color.White),
+//                                    ),
+//                            )
+                            Spacer(modifier = GlanceModifier.height(4.dp))
                             Button("Обновить", actionRunCallback<UpdateWeatherAction>())
+                            Spacer(modifier = GlanceModifier.height(4.dp))
+                            Button("Настройки", actionRunCallback<OpenConfigCallback>())
                         }
                     }
                 }
@@ -131,6 +146,7 @@ fun WeatherMedium(
             updateTimeText = if (appearance.showUpdateTime) Utils.formatDateTime(weatherInfo.updateTime) else null,
             isLoading = isLoading,
             forecastColumns = forecastColumns,
+            appearance = appearance,
         )
         if (appearance.showCurrentWeather) {
             CurrentWeather(
@@ -138,6 +154,7 @@ fun WeatherMedium(
                 GlanceModifier.fillMaxWidth(),
                 forecastColumns = forecastColumns,
                 forecastRows = forecastRows,
+                appearance = appearance
             )
         }
         if (rows >= 1) {

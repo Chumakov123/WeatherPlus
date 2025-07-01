@@ -1,6 +1,5 @@
 package com.chumakov123.gismeteoweather.presentation.features.weather.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -22,36 +21,30 @@ fun WeatherBackground(
     defaultResId: Int = R.drawable.d_c3,
     alpha: Float = 1f,
 ) {
+    val context = LocalContext.current
     val bgUrl = remember(iconWeather) {
-        if (iconWeather != null) {
-            "https://st.gismeteo.st/assets/bg-desktop-now/$iconWeather.webp"
-        } else {
-            null
+        iconWeather?.let {
+            "https://st.gismeteo.st/assets/bg-desktop-now/$it.webp"
         }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        if (bgUrl != null) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(bgUrl)
-                    .diskCachePolicy(CachePolicy.ENABLED)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { this.alpha = alpha },
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Image(
-                painter = painterResource(id = defaultResId),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { this.alpha = alpha },
-                contentScale = ContentScale.Crop
-            )
-        }
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(bgUrl)
+                .diskCacheKey(bgUrl)
+                .memoryCacheKey(bgUrl)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .crossfade(true)
+                .build(),
+            placeholder = painterResource(id = defaultResId),
+            error = painterResource(id = defaultResId),
+            fallback = painterResource(id = defaultResId), // если url == null
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { this.alpha = alpha },
+            contentScale = ContentScale.Crop,
+        )
     }
 }

@@ -9,5 +9,6 @@ data class WidgetAppearance(
     val useColorIndicators: Boolean = true,
     val backgroundTransparencyPercent: Int = 50,
     val showPrecipitation: Boolean = true,
-    val showWind: Boolean = true
+    val showWind: Boolean = true,
+    val textScale: Float = 1.0f
 )

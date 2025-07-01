@@ -11,6 +11,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.chumakov123.gismeteoweather.domain.model.LocationInfo
@@ -26,6 +27,10 @@ fun LocationSelectionDialog(
     onQueryChange: (String) -> Unit,
     onLocationSelected: (LocationInfo) -> Unit,
 ) {
+    val displayedOptions = remember(options) {
+        options.take(10)
+    }
+
     if (showDialog) {
         AlertDialog(
             onDismissRequest = onDismiss,
@@ -40,7 +45,7 @@ fun LocationSelectionDialog(
                     )
                     Spacer(Modifier.height(8.dp))
                     LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
-                        items(options) { item ->
+                        items(displayedOptions) { item ->
                             SearchResultRow(item) {
                                 onLocationSelected(item)
                             }

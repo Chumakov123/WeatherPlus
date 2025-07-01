@@ -1,13 +1,19 @@
 package com.chumakov123.gismeteoweather.presentation.viewModel
 
 import android.app.Application
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.chumakov123.gismeteoweather.data.city.RecentCitiesRepository
 import com.chumakov123.gismeteoweather.data.city.WeatherCityRepository
-import com.chumakov123.gismeteoweather.data.weather.WeatherRepository
 import com.chumakov123.gismeteoweather.data.storage.SettingsRepository
+import com.chumakov123.gismeteoweather.data.weather.WeatherRepository
 import com.chumakov123.gismeteoweather.domain.model.ForecastMode
 import com.chumakov123.gismeteoweather.domain.model.LocationInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherDataPreprocessor
@@ -15,6 +21,10 @@ import com.chumakov123.gismeteoweather.domain.model.WeatherDisplaySettings
 import com.chumakov123.gismeteoweather.domain.model.WeatherInfo
 import com.chumakov123.gismeteoweather.domain.model.WeatherRow
 import com.chumakov123.gismeteoweather.domain.model.WeatherRowType
+import com.chumakov123.gismeteoweather.domain.util.Utils.isMIUI
+import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.WeatherWidgetConfigureActivity
+import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.startWidgetConfigure
+import com.chumakov123.gismeteoweather.presentation.widget.receiver.WeatherGlanceWidgetReceiver
 import com.chumakov123.gismeteoweather.presentation.widget.receiver.WeatherUpdateReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -54,6 +64,9 @@ class WeatherViewModel(
     private val _updatingCities = MutableStateFlow<Set<String>>(emptySet())
     val updatingCities = _updatingCities.asStateFlow()
 
+    private val _canPinWidgets = MutableStateFlow(false)
+    val canPinWidgets = _canPinWidgets.asStateFlow()
+
     val settings: StateFlow<WeatherDisplaySettings> =
         SettingsRepository.settingsFlow
             .stateIn(
@@ -88,6 +101,9 @@ class WeatherViewModel(
 
     init {
         viewModelScope.launch {
+            val context = getApplication<Application>()
+            _canPinWidgets.value = AppWidgetManager.getInstance(context).isRequestPinAppWidgetSupported
+
             WeatherCityRepository.citySettingsFlow
                 .collect { settings ->
                     val selected =
@@ -300,5 +316,49 @@ class WeatherViewModel(
     private fun triggerWidgetUpdate() {
         val intent = Intent(getApplication(), WeatherUpdateReceiver::class.java)
         getApplication<Application>().sendBroadcast(intent)
+    }
+
+    fun requestWidgetPinning(cityCode: String? = null) {
+        val context = getApplication<Application>()
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val provider = ComponentName(context, WeatherGlanceWidgetReceiver::class.java)
+
+        if (appWidgetManager.isRequestPinAppWidgetSupported) {
+            val broadcastIntent = Intent(context, WidgetPinningReceiver::class.java).apply {
+                action = "com.chumakov123.gismeteoweather.ACTION_START_WIDGET_CONFIG"
+                putExtra("city_code", cityCode)
+            }
+            val pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                broadcastIntent,
+                pendingIntentFlags,
+            )
+
+            try {
+                appWidgetManager.requestPinAppWidget(provider, null, pendingIntent)
+                if (isMIUI()) {
+                    Toast.makeText(context, "Добавление виджета на домашний экран", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                context.startWidgetConfigure(AppWidgetManager.INVALID_APPWIDGET_ID, cityCode)
+            }
+        } else {
+            Toast.makeText(context, "В вашей системе виджеты можно добавлять только через меню домашнего экрана", Toast.LENGTH_LONG).show()
+        }
+    }
+}
+
+class WidgetPinningReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val cityCode = intent.getStringExtra("city_code")
+        val configIntent = Intent(context, WeatherWidgetConfigureActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra("city_code", cityCode)
+        }
+        context.startActivity(configIntent)
     }
 }

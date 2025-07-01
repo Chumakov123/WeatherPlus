@@ -27,6 +27,7 @@ import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
 import com.chumakov123.gismeteoweather.domain.model.WidgetState
 import com.chumakov123.gismeteoweather.presentation.features.widgetconfigure.screen.WeatherWidgetConfigureScreen
 import com.chumakov123.gismeteoweather.presentation.widget.WeatherGlanceWidget
+import com.chumakov123.gismeteoweather.presentation.widget.receiver.WeatherGlanceWidgetReceiver
 import com.chumakov123.gismeteoweather.presentation.widget.receiver.WeatherUpdateReceiver
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -40,12 +41,30 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        appWidgetId = intent
-            .getIntExtra(
-                AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID,
-            ).takeIf { it != AppWidgetManager.INVALID_APPWIDGET_ID }
-            ?: return finish()
+        appWidgetId = intent.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        )
+
+        val initialCity = intent.getStringExtra("city_code")
+
+        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            appWidgetId = try {
+                val appWidgetManager = AppWidgetManager.getInstance(this)
+                val provider = ComponentName(this, WeatherGlanceWidgetReceiver::class.java)
+                val widgetIds = appWidgetManager.getAppWidgetIds(provider)
+
+                widgetIds.lastOrNull() ?: AppWidgetManager.INVALID_APPWIDGET_ID
+            } catch (e: Exception) {
+                AppWidgetManager.INVALID_APPWIDGET_ID
+            }
+        }
+
+        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            setResult(RESULT_CANCELED)
+            finish()
+            return
+        }
 
         val manager = GlanceAppWidgetManager(this)
         val glanceId =
@@ -92,6 +111,7 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
                         } else {
                             currentState
                         },
+                        initialCity = initialCity,
                         modifier = Modifier.padding(innerPadding),
                     )
                 }
@@ -117,7 +137,7 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
                 glanceId = glanceId,
             ) { old -> old.copy(cityCode = item.cityCode, appearance = appearance, forecastMode = forecastMode) }
 
-            if (item != LocationInfo.Auto) saveRecentCity(item)
+            if (item is LocationInfo.CityInfo) RecentCitiesRepository.save(item)
 
             setResult(
                 RESULT_OK,
@@ -144,27 +164,15 @@ class WeatherWidgetConfigureActivity : ComponentActivity() {
             finish()
         }
     }
-
-    private fun saveRecentCity(item: LocationInfo) {
-        if (item == LocationInfo.Auto) return
-        val prefs = getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-        val key = "recent_cities"
-        val current = prefs.getStringSet(key, emptySet())?.toMutableList() ?: mutableListOf()
-        current.remove(item.cityCode)
-        current.add(0, item.cityCode)
-        prefs
-            .edit()
-            .putStringSet(key, current.take(5).toSet())
-            .putString("info_${item.cityCode}", "${item.title}|${item.subtitle.orEmpty()}|${item.cityKind}")
-            .apply()
-    }
 }
 
-fun Context.startWidgetConfigure(appWidgetId: Int) {
-    Intent(this, WeatherWidgetConfigureActivity::class.java)
-        .apply {
-            action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }.also(::startActivity)
+fun Context.startWidgetConfigure(appWidgetId: Int, cityCode: String? = null) {
+    Intent(this, WeatherWidgetConfigureActivity::class.java).apply {
+        action = AppWidgetManager.ACTION_APPWIDGET_CONFIGURE
+        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        putExtra("city_code", cityCode)
+        addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    }.also(::startActivity)
 }

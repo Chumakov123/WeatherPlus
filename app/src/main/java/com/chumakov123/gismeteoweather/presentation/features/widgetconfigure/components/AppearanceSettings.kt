@@ -82,5 +82,16 @@ fun AppearanceSettings(
                 )
             },
         )
+
+        TextScaleSetting(
+            textScale = appearance.textScale,
+            onTextScaleChange = { newVal ->
+                onAppearanceChange(
+                    appearance.copy(
+                        textScale = newVal
+                    )
+                )
+            },
+        )
     }
 }

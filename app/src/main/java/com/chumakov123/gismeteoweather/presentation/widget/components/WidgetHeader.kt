@@ -23,6 +23,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.chumakov123.gismeteoweather.R
+import com.chumakov123.gismeteoweather.domain.model.WidgetAppearance
 import com.chumakov123.gismeteoweather.presentation.widget.OpenConfigCallback
 import com.chumakov123.gismeteoweather.presentation.widget.SwitchForecastModeAction
 import com.chumakov123.gismeteoweather.presentation.widget.UpdateWeatherAction
@@ -34,6 +35,7 @@ fun WidgetHeader(
     isLoading: Boolean,
     forecastColumns: Int,
     modifier: GlanceModifier = GlanceModifier,
+    appearance: WidgetAppearance
 ) {
     Row(
         modifier = modifier
@@ -52,7 +54,7 @@ fun WidgetHeader(
                 },
                 style = TextStyle(
                     color = ColorProvider(Color.White),
-                    fontSize = 12.sp
+                    fontSize = 12.sp*appearance.textScale
                 ),
                 modifier = GlanceModifier.defaultWeight(),
                 maxLines = 1,

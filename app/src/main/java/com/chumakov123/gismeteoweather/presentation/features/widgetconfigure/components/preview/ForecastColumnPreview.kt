@@ -39,7 +39,7 @@ fun ForecastColumnPreview(
             text = date,
             color = dateColor,
             style = TextStyle(
-                fontSize = 12.sp,
+                fontSize = 12.sp * appearance.textScale,
                 color = Color.White,
                 platformStyle = PlatformTextStyle(includeFontPadding = false)
             ),
@@ -65,7 +65,7 @@ fun ForecastColumnPreview(
             Text(
                 text = "${if (weatherData.temperature > 0) "+" else ""}${weatherData.temperature}°",
                 style = TextStyle(
-                    fontSize = 14.sp,
+                    fontSize = 14.sp * appearance.textScale,
                     color = tempColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
                 ),
@@ -82,7 +82,7 @@ fun ForecastColumnPreview(
             Text(
                 text = "${if (weatherData.temperature > 0) "+" else ""}${weatherData.temperature}°",
                 style = TextStyle(
-                    fontSize = 12.sp,
+                    fontSize = 12.sp * appearance.textScale,
                     color = tempColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
                 ),
@@ -92,7 +92,7 @@ fun ForecastColumnPreview(
             Text(
                 text = "${if (weatherData.temperatureMin > 0) "+" else ""}${weatherData.temperatureMin}°",
                 style = TextStyle(
-                    fontSize = 10.sp,
+                    fontSize = 10.sp * appearance.textScale,
                     color = tempMinColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
                 ),
@@ -122,7 +122,7 @@ fun ForecastColumnPreview(
             Text(
                 text = windText,
                 style = TextStyle(
-                    fontSize = 10.sp,
+                    fontSize = 10.sp * appearance.textScale,
                     color = windColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
                 ),
@@ -146,7 +146,7 @@ fun ForecastColumnPreview(
                     "—"
                 },
                 style = TextStyle(
-                    fontSize = 10.sp,
+                    fontSize = 10.sp * appearance.textScale,
                     color = precColor,
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
                 ),

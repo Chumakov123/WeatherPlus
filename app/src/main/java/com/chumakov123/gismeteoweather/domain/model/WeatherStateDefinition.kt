@@ -62,5 +62,5 @@ data class WidgetState(
     val appearance: WidgetAppearance = WidgetAppearance(),
     val lastAvailable: WeatherInfo.Available? = null,
     val forecastColumns: Int = 6,
-    val forecastRows: Int = 2
+    val forecastRows: Int = 2,
 )

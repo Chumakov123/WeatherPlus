@@ -35,9 +35,10 @@ fun WeatherWidgetPreview(
             placeName = weatherInfo.placeName,
             updateTimeText = if (appearance.showUpdateTime) Utils.formatDateTime(weatherInfo.updateTime) else null,
             isLoading = false,
+            appearance = appearance
         )
         if (appearance.showCurrentWeather) {
-            CurrentWeatherPreview(weatherInfo, modifier = Modifier.fillMaxWidth())
+            CurrentWeatherPreview(weatherInfo, modifier = Modifier.fillMaxWidth(), appearance = appearance)
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,

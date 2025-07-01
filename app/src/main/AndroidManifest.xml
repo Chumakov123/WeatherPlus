@@ -36,6 +36,16 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".presentation.features.widgetconfigure.WeatherWidgetConfigureActivity"
+            android:exported="true"
+            android:theme="@style/Theme.GismeteoWeather"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
+
         <receiver
             android:name=".presentation.widget.receiver.WeatherGlanceWidgetReceiver"
             android:exported="true">
@@ -50,6 +60,14 @@
         </receiver>
 
         <receiver
+            android:name=".presentation.viewModel.WidgetPinningReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.chumakov123.gismeteoweather.ACTION_START_WIDGET_CONFIG" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".presentation.widget.receiver.WeatherUpdateReceiver"
             android:exported="false" />
 
@@ -61,15 +79,6 @@
             </intent-filter>
         </receiver>
 
-        <activity
-            android:name=".presentation.features.widgetconfigure.WeatherWidgetConfigureActivity"
-            android:exported="true"
-            android:theme="@style/Theme.GismeteoWeather"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>

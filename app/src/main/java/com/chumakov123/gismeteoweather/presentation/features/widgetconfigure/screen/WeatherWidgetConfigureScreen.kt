@@ -37,6 +37,7 @@ fun WeatherWidgetConfigureScreen(
     initialState: WidgetState,
     onConfirm: (LocationInfo, WidgetAppearance, ForecastMode) -> Unit,
     previewWeatherState: WidgetState,
+    initialCity: String? = null,
     modifier: Modifier = Modifier,
 ) {
     var previewState by remember { mutableStateOf(previewWeatherState) }
@@ -76,9 +77,10 @@ fun WeatherWidgetConfigureScreen(
         options = buildDefaultOptions(ipCity)
     }
 
-    LaunchedEffect(options, initialState.cityCode) {
+    LaunchedEffect(options, initialState.cityCode, initialCity) {
         if (!initialized) {
-            options.firstOrNull { it.cityCode == initialState.cityCode }?.let {
+            val targetCityCode = initialCity ?: initialState.cityCode
+            options.firstOrNull { it.cityCode == targetCityCode }?.let {
                 selected = it
                 initialized = true
             }
