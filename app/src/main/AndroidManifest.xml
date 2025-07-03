@@ -13,13 +13,13 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GismeteoWeather"
+        android:theme="@style/Theme.WeatherPlus"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.GismeteoWeather">
+            android:theme="@style/Theme.WeatherPlus">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,7 +39,7 @@
         <activity
             android:name=".presentation.features.widgetconfigure.WeatherWidgetConfigureActivity"
             android:exported="true"
-            android:theme="@style/Theme.GismeteoWeather"
+            android:theme="@style/Theme.WeatherPlus"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
@@ -63,7 +63,7 @@
             android:name=".presentation.viewModel.WidgetPinningReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.chumakov123.gismeteoweather.ACTION_START_WIDGET_CONFIG" />
+                <action android:name="com.chumakov123.weatherplus.ACTION_START_WIDGET_CONFIG" />
             </intent-filter>
         </receiver>
 

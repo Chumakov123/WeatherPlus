@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "com.chumakov123.gismeteoweather";
+option java_package = "com.chumakov123.weatherplus";
 
 message WeatherCache {
   repeated Entry entries = 1;

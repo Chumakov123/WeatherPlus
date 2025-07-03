@@ -20,11 +20,11 @@ protobuf {
 }
 
 android {
-    namespace = "com.chumakov123.gismeteoweather"
+    namespace = "com.chumakov123.weatherplus"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.chumakov123.gismeteoweather"
+        applicationId = "com.chumakov123.weatherplus"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
